@@ -509,11 +509,11 @@ The test file column is filled in during implementation.
 | FR-23 | M | AC-22 | `apps/api/test/flake-analysis.int.test.ts` |
 | FR-24 | M | AC-23, AC-24 | `packages/contracts/src/tests.test.ts`, `apps/api/test/flake-analysis.int.test.ts`, `apps/api/test/read-api.int.test.ts` |
 | FR-25 | M | AC-25 | `apps/api/test/flake-analysis.int.test.ts`, `apps/api/test/read-api.int.test.ts` |
-| FR-26 | M | AC-26 | `apps/api/test/read-api.int.test.ts`, `apps/web/e2e/reports.spec.ts` |
-| FR-27 | M | AC-26 | `apps/api/test/read-api.int.test.ts`, `apps/web/e2e/reports.spec.ts` |
-| FR-28 | M | AC-23 | `apps/web/e2e/test-search-and-detail.spec.ts` |
-| FR-29 | M | AC-25 | `apps/web/e2e/test-search-and-detail.spec.ts` |
-| FR-30 | M | AC-26 | `apps/api/test/read-api.int.test.ts`, `apps/web/e2e/reports.spec.ts` (state is always `pending` for now) |
+| FR-26 | M | AC-26 | `apps/api/test/read-api.int.test.ts`, `apps/web/e2e/reports.spec.ts`, `apps/web/e2e/core-workflow.spec.ts` |
+| FR-27 | M | AC-26 | `apps/api/test/read-api.int.test.ts`, `apps/web/e2e/reports.spec.ts`, `apps/web/e2e/core-workflow.spec.ts` |
+| FR-28 | M | AC-23 | `apps/web/e2e/test-search-and-detail.spec.ts`, `apps/web/e2e/core-workflow.spec.ts` |
+| FR-29 | M | AC-25 | `apps/web/e2e/test-search-and-detail.spec.ts`, `apps/web/e2e/core-workflow.spec.ts` |
+| FR-30 | M | AC-26 | `apps/api/test/read-api.int.test.ts`, `apps/web/e2e/reports.spec.ts` (state is always `pending` for now), `apps/web/e2e/core-workflow.spec.ts` |
 | FR-31 | M | AC-28, AC-29 | `fixtures/flaky-suite/tests/` (AC-29: code-review checklist item, see commit message) |
 | FR-32 | M | AC-28 | `scripts/demo.sh`, `apps/web/e2e/reviewer-demo.spec.ts` |
 | FR-33 | M | AC-30 | |
@@ -526,13 +526,13 @@ The test file column is filled in during implementation.
 | NFR-05 | | AC-13, AC-18 | `apps/api/test/report-processing.int.test.ts` |
 | NFR-06 | | AC-05 | `apps/api/src/projects/token.test.ts`, `apps/api/test/report-intake.int.test.ts`, `apps/api/test/observability.int.test.ts` |
 | NFR-07 | | AC-09 | `apps/api/src/report-intake/xml-pre-check.test.ts`, `apps/api/test/report-intake.int.test.ts` |
-| NFR-08 | | AC-27 | |
-| NFR-09 | | AC-37 | |
+| NFR-08 | | AC-27 | `eslint.config.js` (`no-restricted-syntax` bans `dangerouslySetInnerHTML`), `apps/web/e2e/xss-safety.spec.ts` |
+| NFR-09 | | AC-37 | `apps/web/e2e/accessibility.spec.ts` |
 | NFR-10 | | AC-38 | `apps/api/test/observability.int.test.ts` |
 | NFR-11 | | AC-38 | `apps/api/test/health.int.test.ts` (health `200`/`503`), `apps/api/test/observability.int.test.ts` (`X-Request-Id`) |
 | NFR-12 | | AC-39 | `.github/workflows/ci.yml` jobs `lint-typecheck` (lint and typecheck) and `unit` (coverage gate: `apps/api/vitest.config.ts` thresholds on `apps/api/src/junit/**`, enforced by `npm run test:unit`, design §11) |
 | NFR-13 | | AC-28 | `apps/web/e2e/smoke.spec.ts`, `scripts/demo.sh`, `apps/web/e2e/reviewer-demo.spec.ts` |
-| NFR-14 | | AC-23 | `apps/web/e2e/test-search-and-detail.spec.ts` |
+| NFR-14 | | AC-23 | `apps/web/e2e/test-search-and-detail.spec.ts`, `apps/web/e2e/core-workflow.spec.ts` |
 
 ## 17. Consistency review (v1.0)
 

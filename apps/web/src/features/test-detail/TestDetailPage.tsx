@@ -36,20 +36,21 @@ export function TestDetailPage() {
 
   return (
     <Box>
-      <Typography variant="h4" component="h1" gutterBottom>
-        {classname} &gt; {name}
-      </Typography>
+      {/* AC-25: the verdict is the first element on the page. */}
       <Typography variant="h6" component="p" gutterBottom>
         {verdict.flaky
           ? `Flaky: ${verdict.totalFlakes} Flakes (${verdict.flakesInWindow} in the last ${verdict.windowDays} days)`
           : 'No Flakes recorded'}
+      </Typography>
+      <Typography variant="h4" component="h1" gutterBottom>
+        {classname} &gt; {name}
       </Typography>
       {history.length === 0 ? (
         <Typography>No Commit history yet.</Typography>
       ) : (
         history.map((commit) => (
           <TableContainer key={commit.commitSha} sx={{ mb: 2 }}>
-            <Typography variant="subtitle1">
+            <Typography variant="subtitle1" component="h2">
               Commit {commit.commitSha.slice(0, 7)} {commit.isFlake ? '(Flake)' : ''}
             </Typography>
             <Table size="small">

@@ -74,7 +74,17 @@ export default defineConfig(
     files: ['apps/web/src/**/*.{ts,tsx}'],
     plugins: { 'react-hooks': reactHooks },
     languageOptions: { globals: { ...globals.browser } },
-    rules: reactHooks.configs.recommended.rules,
+    rules: {
+      ...reactHooks.configs.recommended.rules,
+      // NFR-08 / design §4, §7: Report-derived content must render as React text nodes only.
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'JSXAttribute[name.name="dangerouslySetInnerHTML"]',
+          message: 'dangerouslySetInnerHTML is banned (NFR-08): render Report-derived content as text.',
+        },
+      ],
+    },
   },
   {
     files: ['**/*.js'],

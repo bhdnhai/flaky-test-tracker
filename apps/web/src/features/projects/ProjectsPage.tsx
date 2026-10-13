@@ -2,6 +2,7 @@ import {
   Box,
   CircularProgress,
   List,
+  ListItem,
   ListItemButton,
   ListItemText,
   Typography,
@@ -33,9 +34,11 @@ export function ProjectsPage() {
       ) : (
         <List>
           {items.map((project) => (
-            <ListItemButton key={project.id} component={RouterLink} to={`/projects/${project.id}`}>
-              <ListItemText primary={project.name} />
-            </ListItemButton>
+            <ListItem key={project.id} disablePadding>
+              <ListItemButton component={RouterLink} to={`/projects/${project.id}`}>
+                <ListItemText primary={project.name} />
+              </ListItemButton>
+            </ListItem>
           ))}
         </List>
       )}

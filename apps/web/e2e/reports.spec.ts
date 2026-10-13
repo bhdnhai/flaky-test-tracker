@@ -1,27 +1,8 @@
-import { execFile } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
-import { promisify } from 'node:util';
 import { expect, test } from '@playwright/test';
+import { createProject } from './support/create-project.js';
 
-const execFileAsync = promisify(execFile);
 const SAMPLE_XML = '<testsuite name="x"><testcase classname="C" name="t" /></testsuite>';
-
-/** Creates a Project through the real Operator CLI, exactly as the ticket's hand-check does. */
-async function createProject(name: string): Promise<string> {
-  const { stdout } = await execFileAsync('docker', [
-    'compose',
-    'exec',
-    '-T',
-    'api',
-    'node',
-    'dist/cli.js',
-    'create-project',
-    name,
-  ]);
-  const token = stdout.trim().split('\n').pop();
-  if (!token) throw new Error(`create-project ${name} printed no token`);
-  return token;
-}
 
 test('AC-26: Projects → Reports shows a submitted Report (the part that does not need Flaky Tests)', async ({
   page,
