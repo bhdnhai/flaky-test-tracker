@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import type { SubmitReportMetadata } from '@ftt/contracts';
 import { PrismaService } from '../platform/index.js';
 import type { Project } from '../projects/index.js';
@@ -30,6 +30,8 @@ const REPORTS_PAGE_SIZE = 100;
  */
 @Injectable()
 export class ReportIntakeService {
+  private readonly logger = new Logger(ReportIntakeService.name);
+
   constructor(private readonly prisma: PrismaService) {}
 
   async submit({
@@ -61,6 +63,9 @@ export class ReportIntakeService {
         });
         return report;
       });
+      // Links this submission's request log line to the Report's own state-change
+      // logs, by Report ID (design §9, NFR-10).
+      this.logger.log({ reportId: report.id, from: null, to: 'pending' });
       return { report, duplicate: false };
     } catch (error) {
       if (!isUniqueConstraintViolation(error)) throw error;

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '../generated/prisma/client.js';
 import { interpret, type CollidingIdentity, type InterpretedTestCase } from '../junit/index.js';
 import { PrismaService } from '../platform/index.js';
@@ -29,6 +29,8 @@ function collisionWarningOf(collisions: CollidingIdentity[]): Prisma.InputJsonVa
  */
 @Injectable()
 export class ReportProcessingService {
+  private readonly logger = new Logger(ReportProcessingService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly queue: ReportQueueService,
@@ -68,32 +70,27 @@ export class ReportProcessingService {
         await this.queue.complete(tx, claimed.id, now, collisionWarningOf(collisions));
       });
 
-      // One log line per Report state change (design §9): full observability (redaction,
-      // structured pino output, NFR-10) is ticket 10's job; this is the happy-path shape.
-      console.log(
-        JSON.stringify({
-          reportId: claimed.id,
-          from: 'pending',
-          to: 'processed',
-          attempt: claimed.processingAttempts,
-          durationMs: Date.now() - startedAt,
-        }),
-      );
+      // One log line per Report state change (design §9, NFR-10).
+      this.logger.log({
+        reportId: claimed.id,
+        from: 'pending',
+        to: 'processed',
+        attempt: claimed.processingAttempts,
+        durationMs: Date.now() - startedAt,
+      });
     } catch (error) {
       // A poison Report (parseable root, unreadable test cases) must not crash the
       // worker (NFR-05): the attempt is recorded and the Report retried or failed (FR-19).
       const message = error instanceof Error ? error.message : String(error);
       await this.queue.fail(claimed.id, message, claimed.processingAttempts, now);
-      console.log(
-        JSON.stringify({
-          reportId: claimed.id,
-          from: 'pending',
-          to: 'processing-failed',
-          attempt: claimed.processingAttempts,
-          error: message,
-          durationMs: Date.now() - startedAt,
-        }),
-      );
+      this.logger.log({
+        reportId: claimed.id,
+        from: 'pending',
+        to: 'processing-failed',
+        attempt: claimed.processingAttempts,
+        error: message,
+        durationMs: Date.now() - startedAt,
+      });
     }
 
     return true;
@@ -107,7 +104,7 @@ export class ReportProcessingService {
   async sweep(now: Date): Promise<void> {
     const releasedCount = await this.queue.releaseExpired(now);
     if (releasedCount > 0) {
-      console.log(JSON.stringify({ event: 'claims-released', count: releasedCount }));
+      this.logger.log({ event: 'claims-released', count: releasedCount });
     }
   }
 }

@@ -67,8 +67,9 @@ function clientErrorOf(exception: unknown): { status: number; message: string } 
   return undefined;
 }
 
-// Ticket 10 replaces this with the logger's request ID and echoes it as X-Request-Id.
+// pino-http (ticket 10) sets `req.id` and echoes it as X-Request-Id before this filter runs;
+// the fallback only applies outside a full app (e.g. this filter's own unit test).
 function requestIdOf(req: Request): string {
-  const header = req.headers['x-request-id'];
-  return typeof header === 'string' && header !== '' ? header : randomUUID();
+  const id: unknown = req.id;
+  return typeof id === 'string' && id !== '' ? id : randomUUID();
 }

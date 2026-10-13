@@ -1,5 +1,7 @@
 import 'reflect-metadata';
+import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { Logger as PinoLogger } from 'nestjs-pino';
 import { AppModule } from './app.module.js';
 import { loadConfig, SystemClock } from './platform/index.js';
 import { ReportProcessingService } from './report-processing/index.js';
@@ -20,8 +22,10 @@ async function main(): Promise<void> {
   const app = await NestFactory.createApplicationContext(AppModule.forRoot(config), {
     logger: false,
   });
+  app.useLogger(app.get(PinoLogger));
   const processing = app.get(ReportProcessingService);
   const clock = new SystemClock();
+  const logger = new Logger('Worker');
 
   let stopping = false;
   process.on('SIGTERM', () => {
@@ -33,7 +37,7 @@ async function main(): Promise<void> {
 
   const sweepTimer = setInterval(() => {
     processing.sweep(clock.now()).catch((error: unknown) => {
-      console.error('sweep failed', error);
+      logger.error({ event: 'sweep-failed', err: error });
     });
   }, SWEEP_INTERVAL_MS);
 

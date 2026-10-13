@@ -1,6 +1,6 @@
 # 10 — Observability: request IDs, structured logs, health
 
-Status: ready-for-agent
+Status: resolved
 Priority: must
 Blocked by: 03
 
@@ -28,8 +28,8 @@ NFR-06 (log part), NFR-10, NFR-11 (503 path). ACs: AC-38, AC-05 (token never log
 
 ## Acceptance checks
 
-- [ ] **AC-38** (NFR-10, NFR-11). Every HTTP response has an `X-Request-Id` header that matches a JSON log line. `GET /health` returns `200` with the database up and `503` with it stopped.
-- [ ] **AC-05** (FR-06, NFR-06). **Given** a submission with no `Authorization` header, a malformed one, or an unknown token, **then** each gets `401 UNAUTHORIZED` with the same message, no Report is stored, and the token value doesn't appear in the logs.
+- [x] **AC-38** (NFR-10, NFR-11). Every HTTP response has an `X-Request-Id` header that matches a JSON log line. `GET /health` returns `200` with the database up and `503` with it stopped.
+- [x] **AC-05** (FR-06, NFR-06). **Given** a submission with no `Authorization` header, a malformed one, or an unknown token, **then** each gets `401 UNAUTHORIZED` with the same message, no Report is stored, and the token value doesn't appear in the logs.
 
 **How to verify by hand:**
 
@@ -46,11 +46,21 @@ NFR-06 (log part), NFR-10, NFR-11 (503 path). ACs: AC-38, AC-05 (token never log
 
 ## Definition of done
 
-- [ ] Every AC listed above has a passing test at the level named under "Tests expected", with the AC ID in the test name.
-- [ ] `npm run lint`, `npm run typecheck`, unit and integration tests are green; E2E is green if this ticket touches the dashboard or the demo.
-- [ ] `docs/02-srs.md` traceability matrix: test file(s) filled in for the ACs above.
-- [ ] If implementation proved the SRS or design wrong or incomplete: `docs/02-srs.md` and/or `docs/03-design.md` updated, a line added to the SRS document history, and the discovery written under `## Comments` below.
-- [ ] README updated if setup, run or test commands changed.
-- [ ] One focused commit, Conventional Commits format, referencing this ticket (e.g. `feat(intake): … (#NN)`).
+- [x] Every AC listed above has a passing test at the level named under "Tests expected", with the AC ID in the test name.
+- [x] `npm run lint`, `npm run typecheck`, unit and integration tests are green; E2E is green if this ticket touches the dashboard or the demo.
+- [x] `docs/02-srs.md` traceability matrix: test file(s) filled in for the ACs above.
+- [x] If implementation proved the SRS or design wrong or incomplete: `docs/02-srs.md` and/or `docs/03-design.md` updated, a line added to the SRS document history, and the discovery written under `## Comments` below.
+- [x] README updated if setup, run or test commands changed.
+- [x] One focused commit, Conventional Commits format, referencing this ticket (e.g. `feat(intake): … (#NN)`).
 
 ## Comments
+
+Built: nestjs-pino wired via `PlatformModule` (shared by `api`/`worker`/`cli`); `X-Request-Id`
+accepted-or-generated and echoed through pino-http's `genReqId`; `req.headers.authorization`
+redacted; one log line per Report state change in `ReportIntakeService`/`ReportProcessingService`,
+correlated to the originating HTTP request automatically via pino's AsyncLocalStorage context.
+New tests: `apps/api/test/observability.int.test.ts`.
+
+Deviation: `cli.ts` is not wired to `useLogger()` — its stdout is a scripted contract
+(`scripts/demo.sh` reads the last line for the token), so it keeps plain `console.log`. No
+SRS/design change needed: nestjs-pino is still present in its shared module graph.

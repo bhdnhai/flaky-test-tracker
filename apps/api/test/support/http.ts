@@ -1,5 +1,6 @@
 import type { Server } from 'node:http';
 import type { INestApplication } from '@nestjs/common';
+import type { DestinationStream } from 'pino';
 import { createApp } from '../../src/app.js';
 import { loadConfig } from '../../src/platform/index.js';
 import { PrismaService } from '../../src/platform/prisma.service.js';
@@ -13,10 +14,13 @@ export interface HttpTestContext {
   prisma: PrismaService;
 }
 
-/** Boots the HTTP app against a fresh, isolated database for one test. Call `app.close()` after. */
-export async function createHttpTestContext(): Promise<HttpTestContext> {
+/**
+ * Boots the HTTP app against a fresh, isolated database for one test. Call `app.close()` after.
+ * `loggerStream` captures pino's output instead of writing it to stdout (ticket 10).
+ */
+export async function createHttpTestContext(loggerStream?: DestinationStream): Promise<HttpTestContext> {
   const config = loadConfig({ DATABASE_URL: await createTestDatabase() });
-  const app = await createApp(config);
+  const app = await createApp(config, loggerStream);
   await app.init();
   return {
     app,

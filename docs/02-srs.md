@@ -524,12 +524,12 @@ The test file column is filled in during implementation.
 | NFR-03 | | AC-36 | |
 | NFR-04 | | AC-16, AC-17 | `apps/api/test/report-processing.int.test.ts` |
 | NFR-05 | | AC-13, AC-18 | `apps/api/test/report-processing.int.test.ts` |
-| NFR-06 | | AC-05 | `apps/api/src/projects/token.test.ts`, `apps/api/test/report-intake.int.test.ts` |
+| NFR-06 | | AC-05 | `apps/api/src/projects/token.test.ts`, `apps/api/test/report-intake.int.test.ts`, `apps/api/test/observability.int.test.ts` |
 | NFR-07 | | AC-09 | `apps/api/src/report-intake/xml-pre-check.test.ts`, `apps/api/test/report-intake.int.test.ts` |
 | NFR-08 | | AC-27 | |
 | NFR-09 | | AC-37 | |
-| NFR-10 | | AC-38 | |
-| NFR-11 | | AC-38 | `apps/api/test/health.int.test.ts` (health `200`/`503`; the `X-Request-Id` part comes with ticket 10) |
+| NFR-10 | | AC-38 | `apps/api/test/observability.int.test.ts` |
+| NFR-11 | | AC-38 | `apps/api/test/health.int.test.ts` (health `200`/`503`), `apps/api/test/observability.int.test.ts` (`X-Request-Id`) |
 | NFR-12 | | AC-39 | `.github/workflows/ci.yml` jobs `lint-typecheck` (lint and typecheck) and `unit` (coverage gate: `apps/api/vitest.config.ts` thresholds on `apps/api/src/junit/**`, enforced by `npm run test:unit`, design §11) |
 | NFR-13 | | AC-28 | `apps/web/e2e/smoke.spec.ts`, `scripts/demo.sh`, `apps/web/e2e/reviewer-demo.spec.ts` |
 | NFR-14 | | AC-23 | `apps/web/e2e/test-search-and-detail.spec.ts` |
