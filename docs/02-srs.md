@@ -504,13 +504,13 @@ The test file column is filled in during implementation.
 | FR-18 | M | AC-16 | |
 | FR-19 | M | AC-13 | |
 | FR-20 | C | AC-32 | |
-| FR-21 | M | AC-19, AC-20, AC-21 | |
-| FR-22 | M | AC-22 | |
-| FR-23 | M | AC-22 | |
+| FR-21 | M | AC-19, AC-20, AC-21 | `apps/api/test/flake-analysis.int.test.ts` |
+| FR-22 | M | AC-22 | `apps/api/test/flake-analysis.int.test.ts` |
+| FR-23 | M | AC-22 | `apps/api/test/flake-analysis.int.test.ts` |
 | FR-24 | M | AC-23, AC-24 | |
 | FR-25 | M | AC-25 | |
 | FR-26 | M | AC-26 | `apps/api/test/read-api.int.test.ts`, `apps/web/e2e/reports.spec.ts` |
-| FR-27 | M | AC-26 | |
+| FR-27 | M | AC-26 | `apps/api/test/read-api.int.test.ts`, `apps/web/e2e/reports.spec.ts` |
 | FR-28 | M | AC-23 | |
 | FR-29 | M | AC-25 | |
 | FR-30 | M | AC-26 | `apps/api/test/read-api.int.test.ts`, `apps/web/e2e/reports.spec.ts` (state is always `pending` for now) |

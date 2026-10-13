@@ -1,9 +1,11 @@
 import {
   errorEnvelopeSchema,
+  flakyTestsListResponseSchema,
   healthResponseSchema,
   projectsListResponseSchema,
   reportsListResponseSchema,
   type ErrorCode,
+  type FlakyTestsListResponse,
   type HealthResponse,
   type ProjectsListResponse,
   type ReportsListResponse,
@@ -47,5 +49,13 @@ export function getProjectReports(projectId: string): Promise<ReportsListRespons
   return getJson(
     `/api/v1/projects/${encodeURIComponent(projectId)}/reports`,
     reportsListResponseSchema,
+  );
+}
+
+/** FR-27: a Project's Flaky Tests page data. */
+export function getFlakyTests(projectId: string): Promise<FlakyTestsListResponse> {
+  return getJson(
+    `/api/v1/projects/${encodeURIComponent(projectId)}/flaky-tests`,
+    flakyTestsListResponseSchema,
   );
 }

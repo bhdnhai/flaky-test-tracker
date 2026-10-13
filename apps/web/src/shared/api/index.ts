@@ -1,1 +1,7 @@
-export { ApiRequestError, getHealth, getProjectReports, getProjects } from './client';
+export {
+  ApiRequestError,
+  getFlakyTests,
+  getHealth,
+  getProjectReports,
+  getProjects,
+} from './client';

@@ -1,6 +1,6 @@
 # 04 — Flaky Tests list
 
-Status: ready-for-agent
+Status: resolved
 Priority: must
 Blocked by: 03
 
@@ -52,11 +52,21 @@ FR-21, FR-22, FR-23, FR-27. ACs: AC-19, AC-20 (list part; the "No Flakes recorde
 
 ## Definition of done
 
-- [ ] Every AC listed above has a passing test at the level named under "Tests expected", with the AC ID in the test name.
-- [ ] `npm run lint`, `npm run typecheck`, unit and integration tests are green; E2E is green if this ticket touches the dashboard or the demo.
-- [ ] `docs/02-srs.md` traceability matrix: test file(s) filled in for the ACs above.
-- [ ] If implementation proved the SRS or design wrong or incomplete: `docs/02-srs.md` and/or `docs/03-design.md` updated, a line added to the SRS document history, and the discovery written under `## Comments` below.
-- [ ] README updated if setup, run or test commands changed.
-- [ ] One focused commit, Conventional Commits format, referencing this ticket (e.g. `feat(intake): … (#NN)`).
+- [x] Every AC listed above has a passing test at the level named under "Tests expected", with the AC ID in the test name.
+- [x] `npm run lint`, `npm run typecheck`, unit and integration tests are green; E2E is green if this ticket touches the dashboard or the demo.
+- [x] `docs/02-srs.md` traceability matrix: test file(s) filled in for the ACs above.
+- [x] If implementation proved the SRS or design wrong or incomplete: `docs/02-srs.md` and/or `docs/03-design.md` updated, a line added to the SRS document history, and the discovery written under `## Comments` below.
+- [x] README updated if setup, run or test commands changed.
+- [x] One focused commit, Conventional Commits format, referencing this ticket (e.g. `feat(intake): … (#NN)`).
 
 ## Comments
+
+Built: `FlakeAnalysis` module with a raw SQL aggregate (Zod-validated) implementing ADR-0004's
+Flake rule; `RANKING_WINDOW_DAYS` config (1–90, default 14); `GET /api/v1/projects/{id}/flaky-tests`;
+the dashboard Flaky Tests page replacing ticket 01's placeholder. No SRS/design divergence — the
+endpoint shape and ordering match SRS §9.2/FR-23 exactly, so no document update was needed beyond
+the traceability matrix.
+
+Follow-up (out of scope here): `apps/web/e2e/reports.spec.ts`'s pre-existing "pending" assertion
+races the worker's 500ms poll loop and can fail under load now that both e2e specs submit Reports
+in the same run — observed once, not reproducible on a warm stack. Worth a ticket if it recurs.

@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { INestApplication } from '@nestjs/common';
 import {
   errorEnvelopeSchema,
+  flakyTestsListResponseSchema,
   projectsListResponseSchema,
   reportListItemSchema,
   reportsListResponseSchema,
@@ -133,6 +134,40 @@ describe('Read API: Projects and Reports (FR-26, FR-30)', () => {
     const res = await request(server).get(
       `/api/v1/projects/${otherProjectId}/reports/${submitted.id}`,
     );
+
+    expect(res.status).toBe(404);
+    expect(errorEnvelopeSchema.parse(res.body).error.code).toBe('NOT_FOUND');
+  });
+});
+
+describe('Read API: Flaky Tests (FR-21, FR-22, FR-23, FR-27)', () => {
+  let app: INestApplication | undefined;
+
+  afterEach(async () => {
+    await app?.close();
+  });
+
+  async function createContext(): Promise<HttpTestContext> {
+    const context = await createHttpTestContext();
+    app = context.app;
+    return context;
+  }
+
+  it('FR-27: GET .../flaky-tests reports the configured window and an empty list for a Project with no Flakes', async () => {
+    const { projects, server } = await createContext();
+    const { project } = await projects.create('web-app');
+
+    const res = await request(server).get(`/api/v1/projects/${project.id}/flaky-tests`);
+
+    expect(res.status).toBe(200);
+    const body = flakyTestsListResponseSchema.parse(res.body);
+    expect(body).toEqual({ windowDays: 14, items: [] });
+  });
+
+  it('SRS §10: an unknown projectId on GET .../flaky-tests returns 404 NOT_FOUND', async () => {
+    const { server } = await createContext();
+
+    const res = await request(server).get(`/api/v1/projects/${randomUUID()}/flaky-tests`);
 
     expect(res.status).toBe(404);
     expect(errorEnvelopeSchema.parse(res.body).error.code).toBe('NOT_FOUND');
