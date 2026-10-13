@@ -76,5 +76,16 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  # Fixture suite for `npm run demo` (FR-31, FR-32). Not started by `docker compose up`; only
+  # `scripts/demo.sh` runs it, one `run` per iteration, via the `demo` profile.
+  demo:
+    build:
+      context: .
+      dockerfile: fixtures/flaky-suite/Dockerfile
+    image: flaky-test-tracker-demo:local
+    profiles: ['demo']
+    volumes:
+      - ./fixtures/flaky-suite/runs:/repo/fixtures/flaky-suite/runs
+
 volumes:
   db-data:

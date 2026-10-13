@@ -79,3 +79,22 @@ jobs:
           fail-on-cache-miss: true
       # Testcontainers uses the runner's Docker daemon (ADR-0010).
       - run: npm run test:integration
+
+  e2e:
+    needs: [lint-typecheck, unit, integration]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - uses: actions/cache/restore@v6
+        with:
+          path: ${{ env.NODE_MODULES_PATHS }}
+          key: node-modules-${{ runner.os }}-${{ hashFiles('.nvmrc', 'package-lock.json') }}
+          fail-on-cache-miss: true
+      - run: npx playwright install --with-deps chromium
+      - run: docker compose up -d --build
+      - run: npm run demo
+      - run: npm run test:e2e --workspace apps/web
+      - run: docker compose down -v

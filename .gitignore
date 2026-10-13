@@ -45,3 +45,6 @@ Thumbs.db
 
 # Generated Prisma client
 apps/api/src/generated/
+
+# npm run demo's JUnit output from the fixture suite (scripts/demo.sh)
+fixtures/flaky-suite/runs/

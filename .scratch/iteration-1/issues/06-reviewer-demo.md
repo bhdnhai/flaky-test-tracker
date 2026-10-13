@@ -1,6 +1,6 @@
 # 06 — Reviewer demo: genuinely flaky suite and `npm run demo`
 
-Status: ready-for-agent
+Status: resolved
 Priority: must
 Blocked by: 05
 
@@ -29,8 +29,8 @@ FR-31, FR-32; NFR-13. ACs: AC-28, AC-29.
 
 ## Acceptance checks
 
-- [ ] **AC-28** (FR-31, FR-32, NFR-13, G1, G4). **Given** a fresh clone with Docker and Node, **when** the reviewer runs `docker compose up -d` and `npm run demo`, **then** within 5 minutes (excluding the first image download) the demo prints a dashboard URL, the `demo` Project's Flaky Tests list contains every flaky fixture test, and the always-failing fixture test is **not** listed.
-- [ ] **AC-29** (FR-31). **Given** the fixture suite's source, **then** no test reads an attempt counter, a seed or an environment variable to decide its outcome (code review checklist item).
+- [x] **AC-28** (FR-31, FR-32, NFR-13, G1, G4). **Given** a fresh clone with Docker and Node, **when** the reviewer runs `docker compose up -d` and `npm run demo`, **then** within 5 minutes (excluding the first image download) the demo prints a dashboard URL, the `demo` Project's Flaky Tests list contains every flaky fixture test, and the always-failing fixture test is **not** listed.
+- [x] **AC-29** (FR-31). **Given** the fixture suite's source, **then** no test reads an attempt counter, a seed or an environment variable to decide its outcome (code review checklist item).
 
 **How to verify by hand:**
 
@@ -50,11 +50,32 @@ FR-31, FR-32; NFR-13. ACs: AC-28, AC-29.
 
 ## Definition of done
 
-- [ ] Every AC listed above has a passing test at the level named under "Tests expected", with the AC ID in the test name.
-- [ ] `npm run lint`, `npm run typecheck`, unit and integration tests are green; E2E is green if this ticket touches the dashboard or the demo.
-- [ ] `docs/02-srs.md` traceability matrix: test file(s) filled in for the ACs above.
-- [ ] If implementation proved the SRS or design wrong or incomplete: `docs/02-srs.md` and/or `docs/03-design.md` updated, a line added to the SRS document history, and the discovery written under `## Comments` below.
-- [ ] README updated if setup, run or test commands changed.
-- [ ] One focused commit, Conventional Commits format, referencing this ticket (e.g. `feat(intake): … (#NN)`).
+- [x] Every AC listed above has a passing test at the level named under "Tests expected", with the AC ID in the test name.
+- [x] `npm run lint`, `npm run typecheck`, unit and integration tests are green; E2E is green if this ticket touches the dashboard or the demo (see Comments: one pre-existing, unrelated E2E flake found and left out of scope).
+- [x] `docs/02-srs.md` traceability matrix: test file(s) filled in for the ACs above.
+- [x] If implementation proved the SRS or design wrong or incomplete: `docs/02-srs.md` and/or `docs/03-design.md` updated, a line added to the SRS document history, and the discovery written under `## Comments` below.
+- [x] README updated if setup, run or test commands changed.
+- [x] One focused commit, Conventional Commits format, referencing this ticket (e.g. `feat(intake): … (#NN)`).
 
 ## Comments
+
+Built: `fixtures/flaky-suite` (npm workspace, Dockerfile, 3 flaky + 1 always-failing + 1
+always-passing Vitest tests using the completion-order race from the prototype); `demo` Compose
+service (profile `demo`); `scripts/demo.sh`; `e2e` CI job; README quick start. Verified by hand:
+`docker compose up -d --build && npm run demo` completed in ~20s and populated the `demo`
+Project's Flaky Tests with exactly the 3 flaky fixtures, excluding the always-failing one; a
+second `npm run demo` reused the Project (token rotated) and Report count grew 10 → 20 (flake
+counts don't grow on a rerun of the same commit, by design — ADR-0004 scopes a Flake to a Commit).
+AC-29 checklist: confirmed by reading `fixtures/flaky-suite/tests/` — no test reads an attempt
+counter, a seed or an environment variable.
+
+Deviation found while verifying: `apps/web/e2e/reports.spec.ts`'s first test
+(`AC-26: ... shows a submitted Report`) is pre-existingly flaky — it asserts a Report is still
+`pending` right after submission, which races the worker's 500 ms poll and fails under load (seen
+after `npm run demo`'s 20 submissions warmed up the worker). Reproduces on `main` before this
+ticket too under the right timing; out of scope for ticket 06 (it predates the demo and isn't one
+of this ticket's ACs), left unfixed and not folded into this commit.
+
+Follow-up (out of scope): `apps/web/e2e/reports.spec.ts`'s pending-state assertion above should be
+made robust to the worker's poll race (e.g. assert eventually-`pending`-or-`processed` via
+`toPass`, matching the retry pattern already used elsewhere in that file).

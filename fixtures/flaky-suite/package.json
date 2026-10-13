@@ -1,0 +1,14 @@
+{
+  "name": "@ftt/flaky-suite",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Genuinely flaky Vitest fixture suite for `npm run demo` (FR-31); not part of the product.",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "vitest": "5.0.4"
+  }
+}

@@ -514,8 +514,8 @@ The test file column is filled in during implementation.
 | FR-28 | M | AC-23 | `apps/web/e2e/test-search-and-detail.spec.ts` |
 | FR-29 | M | AC-25 | `apps/web/e2e/test-search-and-detail.spec.ts` |
 | FR-30 | M | AC-26 | `apps/api/test/read-api.int.test.ts`, `apps/web/e2e/reports.spec.ts` (state is always `pending` for now) |
-| FR-31 | M | AC-28, AC-29 | |
-| FR-32 | M | AC-28 | |
+| FR-31 | M | AC-28, AC-29 | `fixtures/flaky-suite/tests/` (AC-29: code-review checklist item, see commit message) |
+| FR-32 | M | AC-28 | `scripts/demo.sh`, `apps/web/e2e/reviewer-demo.spec.ts` |
 | FR-33 | M | AC-30 | |
 | FR-34 | S | AC-31 | |
 | FR-35 | C | AC-33 | |
@@ -531,7 +531,7 @@ The test file column is filled in during implementation.
 | NFR-10 | | AC-38 | |
 | NFR-11 | | AC-38 | `apps/api/test/health.int.test.ts` (health `200`/`503`; the `X-Request-Id` part comes with ticket 10) |
 | NFR-12 | | AC-39 | `.github/workflows/ci.yml` jobs `lint-typecheck` (lint and typecheck) and `unit` (coverage gate: `apps/api/vitest.config.ts` thresholds on `apps/api/src/junit/**`, enforced by `npm run test:unit`, design §11) |
-| NFR-13 | | AC-28 | `apps/web/e2e/smoke.spec.ts` (the Compose stack starts and the dashboard reaches the API; the demo part of AC-28 comes with ticket 06) |
+| NFR-13 | | AC-28 | `apps/web/e2e/smoke.spec.ts`, `scripts/demo.sh`, `apps/web/e2e/reviewer-demo.spec.ts` |
 | NFR-14 | | AC-23 | `apps/web/e2e/test-search-and-detail.spec.ts` |
 
 ## 17. Consistency review (v1.0)
