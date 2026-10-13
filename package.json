@@ -21,16 +21,21 @@
     "test:unit": "npm run test:unit --workspaces --if-present",
     "test:integration": "npm run test:integration --workspaces --if-present",
     "test:e2e": "npm run test:e2e --workspace apps/web",
-    "demo": "bash scripts/demo.sh"
+    "demo": "bash scripts/demo.sh",
+    "perf:load": "bash load/run-k6.sh",
+    "perf:processing": "node load/processing.mjs",
+    "perf:reads": "npm run build --workspace packages/contracts --workspace apps/api && node load/seed-reads.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.0",
+    "@testcontainers/postgresql": "^12.2.1",
     "eslint": "^10.12.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import-x": "^4.17.1",
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.13.0",
+    "pg": "^8.23.1",
     "prettier": "^3.9.10",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.71.2"

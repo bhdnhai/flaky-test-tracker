@@ -289,7 +289,7 @@ open http://localhost:8080
   2. runs the fixture suite 10 times in the `demo` Compose service (profile `demo`, an image built from `fixtures/flaky-suite` on `node:22-alpine`, with its dependencies installed at build time). The prototype showed the race keeps its ~50% rate under Docker and `--cpus=0.5`.
   3. submits each JUnit file to `http://web/api/v1/reports` on the Compose network, with `commit=$(git rev-parse HEAD)` passed in from the host. This is the same request the composite action makes.
   4. polls each Report's status, then prints the dashboard URL.
-- `web` publishes port 8080 and proxies `/api/` and `/health` to `api` (the health check is outside `/api/v1`, SRS §9.2). `db` is published on host port **5433** (`DB_PORT`) only for running the API outside Docker; 5433 avoids clashing with a PostgreSQL already installed on the host.
+- `web` publishes port 8080 and proxies `/api/` and `/health` to `api` (the health check is outside `/api/v1`, SRS §9.2). `/api/` sets `client_max_body_size 10m`, matching the API's own raw-body limit (`REPORT_BODY_LIMIT` in `apps/api/src/app.ts`): nginx's 1 MB default otherwise rejects a 1 MB Report with `413` before it reaches the API (found verifying NFR-01, ticket 12). `db` is published on host port **5433** (`DB_PORT`) only for running the API outside Docker; 5433 avoids clashing with a PostgreSQL already installed on the host.
 - Supported on macOS and Linux (bash). Windows reviewers use WSL; this is documented as a limitation.
 
 ### Production sketch (NOT built in iteration 1)

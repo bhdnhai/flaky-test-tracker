@@ -1,0 +1,20 @@
+name: Performance (k6)
+
+# AC-34, design §11: shared runners make latency numbers noisy, so this runs only on demand,
+# never on every push.
+on:
+  workflow_dispatch:
+
+jobs:
+  k6:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - run: npm ci
+      - run: docker compose up -d --build
+      - run: npm run perf:load
+      - if: always()
+        run: docker compose down -v

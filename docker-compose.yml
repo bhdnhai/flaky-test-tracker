@@ -87,5 +87,15 @@ services:
     volumes:
       - ./fixtures/flaky-suite/runs:/repo/fixtures/flaky-suite/runs
 
+  # k6 (AC-34), run by `npm run perf:load` / `load/run-k6.sh`. On the Compose network so it
+  # reaches `web` directly, rather than through the published host port (design §2, §11).
+  k6:
+    image: grafana/k6:1.8.0
+    profiles: ['perf']
+    volumes:
+      - ./load:/scripts:ro
+    depends_on:
+      - web
+
 volumes:
   db-data:

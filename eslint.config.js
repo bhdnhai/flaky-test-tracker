@@ -36,6 +36,9 @@ export default defineConfig(
       '**/playwright-report/**',
       '**/test-results/**',
       `${apiSrc}/generated/**`,
+      // Standalone perf scripts (ticket 12): k6-submit.js targets the k6 runtime, not Node,
+      // and none of load/ is part of the TypeScript project graph.
+      'load/**',
     ],
   },
   js.configs.recommended,
@@ -81,7 +84,8 @@ export default defineConfig(
         'error',
         {
           selector: 'JSXAttribute[name.name="dangerouslySetInnerHTML"]',
-          message: 'dangerouslySetInnerHTML is banned (NFR-08): render Report-derived content as text.',
+          message:
+            'dangerouslySetInnerHTML is banned (NFR-08): render Report-derived content as text.',
         },
       ],
     },

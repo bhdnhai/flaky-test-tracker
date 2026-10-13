@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Version | 1.3 (see [Document history](#18-document-history)) |
+| Version | 1.5 (see [Document history](#18-document-history)) |
 | Status | Baseline for implementation |
 | Problem definition | [docs/01-problem-definition.md](01-problem-definition.md) |
 | Glossary | [CONTEXT.md](../CONTEXT.md) |
@@ -397,7 +397,7 @@ Statuses come from the [problem definition](01-problem-definition.md#assumptions
 | A7 | Reports stay well under 10 MB. | Size of real suites' Reports; `413` frequency | Open |
 | A8 | The completion-order race fails about 50% of the time on any machine. | Prototype (host and `--cpus=0.5`); GitHub Actions via FR-34 | Confirmed locally |
 | A9 | Teams that hit Collisions will act on the warning and set the reporter option. | Reports with a persistent Collision warning over several days | Open |
-| A10 | Computing Flakes on read meets NFR-03 at the stated volume. | k6 or a seeded benchmark at 10k Tests / 200k Outcomes | Open; checked during implementation |
+| A10 | Computing Flakes on read meets NFR-03 at the stated volume. | k6 or a seeded benchmark at 10k Tests / 200k Outcomes | Confirmed: `load/seed-reads.mjs` (AC-36), p95 well under 500 ms; no fallback needed |
 
 ## 14. Out of scope
 
@@ -519,9 +519,9 @@ The test file column is filled in during implementation.
 | FR-33 | M | AC-30 | |
 | FR-34 | S | AC-31 | |
 | FR-35 | C | AC-33 | |
-| NFR-01 | | AC-34 | |
-| NFR-02 | | AC-35 | |
-| NFR-03 | | AC-36 | |
+| NFR-01 | | AC-34 | `load/k6-submit.js` |
+| NFR-02 | | AC-35 | `load/processing.mjs` |
+| NFR-03 | | AC-36 | `load/seed-reads.mjs` |
 | NFR-04 | | AC-16, AC-17 | `apps/api/test/report-processing.int.test.ts` |
 | NFR-05 | | AC-13, AC-18 | `apps/api/test/report-processing.int.test.ts` |
 | NFR-06 | | AC-05 | `apps/api/src/projects/token.test.ts`, `apps/api/test/report-intake.int.test.ts`, `apps/api/test/observability.int.test.ts` |
@@ -564,3 +564,4 @@ Problems found and fixed while drafting:
 | 1.2 | 2026-10-13 | No requirement changed. Design corrected (design §2, §4, §8, §10): Node ≥ 22.22; deep-import lint via `eslint-plugin-import-x`; the test-naming rule allows a requirement or ADR ID when no AC covers the test; the web client's unit tests may stub `fetch`; nginx also proxies `/health`; `db` is published on host port 5433. Traceability matrix: first test files for NFR-11, NFR-12, NFR-13. | Found while implementing ticket 01: React Router 8.4 and Testcontainers 12.2 require Node ≥ 22.22, not the ≥ 22.12 the design assumed; `eslint-plugin-import` has no ESLint 10 support; ticket 01 itself asks for tests that no AC covers (the `500` mapping); a native PostgreSQL on the host shadowed port 5432 |
 | 1.3 | 2026-10-13 | No requirement changed. Design corrected (design §4): ReportIntake's documented interface now includes `listForProject`/`findOne`, and the module diagram gets a `readapi --> intake` edge, naming it as the Report table's read owner. Traceability matrix: test files for FR-01 … FR-08, FR-11, FR-13 (partial), FR-26, FR-30, NFR-06. | Found while implementing ticket 02: the design never named which module owns Report *reads* for ReadApi (only ReportQueue, arriving in ticket 03, was given Report-table methods), so the first implementation had `ReadApi` query `PrismaService` directly — a documented-standard violation caught by code review. Reusing `ReportIntake`, which already owns the table's writes, closes the gap without inventing a new module ticket 02 doesn't need. |
 | 1.4 | 2026-10-13 | No requirement changed. Design corrected (design §7): predefined XML entities (`&gt;` etc.) are decoded, not disabled via `processEntities: false` as design §7 said. Traceability matrix: test files for FR-13 … FR-17, NFR-12. | Found while implementing ticket 03: `processEntities: false` is all-or-nothing in fast-xml-parser and would have left Vitest's `&gt;`-escaped `name` attributes undecoded, breaking "identity exactly as reported" (FR-14, AC-11) — the library's entity decoder already caps expansion size/depth and screens custom entity values regardless of the toggle, so NFR-07's actual XXE concern (DOCTYPE, external entities) is unaffected. Also found: a Report whose root is a bare `<testsuite>` (no `<testsuites>` wrapper) — a shape already used by this repo's own `SAMPLE_JUNIT_XML` test fixture — silently produced zero Tests/Outcomes while the Report still reported `processed`; `interpret` now accepts both shapes. |
+| 1.5 | 2026-10-14 | No requirement changed. Design corrected (design §10): `apps/web/nginx.conf` now sets `client_max_body_size 10m` on `/api/` to match the API's own raw-body limit (`REPORT_BODY_LIMIT` in `apps/api/src/app.ts`). A10 resolved (§13): confirmed, not just open. | Found while implementing ticket 12 (AC-34): nginx's 1 MB default silently `413`'d a 1 MB Report before it reached the API — the only entry point the Compose stack exposes (`web`, port 8080) — so NFR-01 couldn't even be measured, let alone met, until this was fixed. Also confirmed A10: `load/seed-reads.mjs` measured the on-read Flake query at 10k Tests / 200k Outcomes well under NFR-03's 500 ms, so the per-(Test, Commit) summary fallback (design §6) was not needed. |
