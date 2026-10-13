@@ -1,6 +1,6 @@
 # 05 — Test search and Test detail with verdict
 
-Status: ready-for-agent
+Status: resolved
 Priority: must
 Blocked by: 04
 
@@ -50,11 +50,16 @@ FR-24, FR-25, FR-28, FR-29; NFR-14. ACs: AC-23, AC-24, AC-25, AC-20 (verdict par
 
 ## Definition of done
 
-- [ ] Every AC listed above has a passing test at the level named under "Tests expected", with the AC ID in the test name.
-- [ ] `npm run lint`, `npm run typecheck`, unit and integration tests are green; E2E is green if this ticket touches the dashboard or the demo.
-- [ ] `docs/02-srs.md` traceability matrix: test file(s) filled in for the ACs above.
-- [ ] If implementation proved the SRS or design wrong or incomplete: `docs/02-srs.md` and/or `docs/03-design.md` updated, a line added to the SRS document history, and the discovery written under `## Comments` below.
-- [ ] README updated if setup, run or test commands changed.
-- [ ] One focused commit, Conventional Commits format, referencing this ticket (e.g. `feat(intake): … (#NN)`).
+- [x] Every AC listed above has a passing test at the level named under "Tests expected", with the AC ID in the test name.
+- [x] `npm run lint`, `npm run typecheck`, unit and integration tests are green; E2E is green if this ticket touches the dashboard or the demo.
+- [x] `docs/02-srs.md` traceability matrix: test file(s) filled in for the ACs above.
+- [x] If implementation proved the SRS or design wrong or incomplete: `docs/02-srs.md` and/or `docs/03-design.md` updated, a line added to the SRS document history, and the discovery written under `## Comments` below.
+- [x] README updated if setup, run or test commands changed.
+- [x] One focused commit, Conventional Commits format, referencing this ticket (e.g. `feat(intake): … (#NN)`).
 
 ## Comments
+
+Built: `FlakeAnalysis.search`/`testDetail` (two raw SQL aggregates + a Prisma join for Outcome/Report
+metadata), `GET /api/v1/projects/{id}/tests[?search=][/{testId}]`, Test search field on the Flaky
+Tests page, and the Test detail page (verdict first, history by Commit). No deviations from the SRS
+response shapes. Out-of-scope ideas: none raised.

@@ -507,12 +507,12 @@ The test file column is filled in during implementation.
 | FR-21 | M | AC-19, AC-20, AC-21 | `apps/api/test/flake-analysis.int.test.ts` |
 | FR-22 | M | AC-22 | `apps/api/test/flake-analysis.int.test.ts` |
 | FR-23 | M | AC-22 | `apps/api/test/flake-analysis.int.test.ts` |
-| FR-24 | M | AC-23, AC-24 | |
-| FR-25 | M | AC-25 | |
+| FR-24 | M | AC-23, AC-24 | `packages/contracts/src/tests.test.ts`, `apps/api/test/flake-analysis.int.test.ts`, `apps/api/test/read-api.int.test.ts` |
+| FR-25 | M | AC-25 | `apps/api/test/flake-analysis.int.test.ts`, `apps/api/test/read-api.int.test.ts` |
 | FR-26 | M | AC-26 | `apps/api/test/read-api.int.test.ts`, `apps/web/e2e/reports.spec.ts` |
 | FR-27 | M | AC-26 | `apps/api/test/read-api.int.test.ts`, `apps/web/e2e/reports.spec.ts` |
-| FR-28 | M | AC-23 | |
-| FR-29 | M | AC-25 | |
+| FR-28 | M | AC-23 | `apps/web/e2e/test-search-and-detail.spec.ts` |
+| FR-29 | M | AC-25 | `apps/web/e2e/test-search-and-detail.spec.ts` |
 | FR-30 | M | AC-26 | `apps/api/test/read-api.int.test.ts`, `apps/web/e2e/reports.spec.ts` (state is always `pending` for now) |
 | FR-31 | M | AC-28, AC-29 | |
 | FR-32 | M | AC-28 | |
@@ -532,7 +532,7 @@ The test file column is filled in during implementation.
 | NFR-11 | | AC-38 | `apps/api/test/health.int.test.ts` (health `200`/`503`; the `X-Request-Id` part comes with ticket 10) |
 | NFR-12 | | AC-39 | `.github/workflows/ci.yml` jobs `lint-typecheck` (lint and typecheck) and `unit` (coverage gate: `apps/api/vitest.config.ts` thresholds on `apps/api/src/junit/**`, enforced by `npm run test:unit`, design §11) |
 | NFR-13 | | AC-28 | `apps/web/e2e/smoke.spec.ts` (the Compose stack starts and the dashboard reaches the API; the demo part of AC-28 comes with ticket 06) |
-| NFR-14 | | AC-23 | |
+| NFR-14 | | AC-23 | `apps/web/e2e/test-search-and-detail.spec.ts` |
 
 ## 17. Consistency review (v1.0)
 

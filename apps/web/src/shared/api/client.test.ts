@@ -1,5 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ApiRequestError, getHealth, getProjectReports, getProjects } from './client';
+import {
+  ApiRequestError,
+  getHealth,
+  getProjectReports,
+  getProjects,
+  getTestDetail,
+  searchTests,
+} from './client';
 
 function respondWith(status: number, body: unknown): void {
   vi.stubGlobal(
@@ -85,5 +92,74 @@ describe('shared API client: getProjectReports', () => {
     const result = await getProjectReports('some-project-id');
 
     expect(result.items).toMatchObject([{ branch: 'main', processingState: 'pending' }]);
+  });
+});
+
+describe('shared API client: searchTests', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('AC-23: returns search results including Tests with no Flakes', async () => {
+    respondWith(200, {
+      items: [
+        {
+          testId: '167a080b-59a4-4f8c-b730-601b820776d4',
+          classname: 'report ingestion',
+          name: 'parses',
+          totalFlakes: 0,
+        },
+      ],
+    });
+
+    const result = await searchTests('some-project-id', 'INGEST');
+
+    expect(result.items).toMatchObject([{ name: 'parses', totalFlakes: 0 }]);
+  });
+});
+
+describe('shared API client: getTestDetail', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('AC-25: returns the verdict and Commit history', async () => {
+    respondWith(200, {
+      testId: '167a080b-59a4-4f8c-b730-601b820776d4',
+      classname: 'C',
+      name: 'X',
+      verdict: { flaky: true, totalFlakes: 2, flakesInWindow: 1, windowDays: 14 },
+      history: [
+        {
+          commitSha: 'a'.repeat(40),
+          isFlake: true,
+          passed: 1,
+          failed: 1,
+          skipped: 0,
+          outcomes: [
+            {
+              result: 'failed',
+              failureMessage: 'boom',
+              reportId: '167a080b-59a4-4f8c-b730-601b820776d4',
+              branch: 'main',
+              runId: null,
+              runAttempt: null,
+              job: null,
+              receivedAt: '2026-01-01T00:00:00.000Z',
+            },
+          ],
+        },
+      ],
+    });
+
+    const result = await getTestDetail('some-project-id', 'some-test-id');
+
+    expect(result.verdict).toEqual({
+      flaky: true,
+      totalFlakes: 2,
+      flakesInWindow: 1,
+      windowDays: 14,
+    });
+    expect(result.history).toMatchObject([{ commitSha: 'a'.repeat(40), isFlake: true }]);
   });
 });

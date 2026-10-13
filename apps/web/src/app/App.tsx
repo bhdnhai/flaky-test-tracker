@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Routes } from 'react-router';
 import { FlakyTestsPage } from '../features/flaky-tests';
 import { ProjectsPage } from '../features/projects';
 import { ReportsPage } from '../features/reports';
+import { TestDetailPage } from '../features/test-detail';
 import { ApiStatus } from './ApiStatus';
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ export function App() {
             <Route path="/" element={<ProjectsPage />} />
             <Route path="/projects/:projectId" element={<FlakyTestsPage />} />
             <Route path="/projects/:projectId/reports" element={<ReportsPage />} />
+            <Route path="/projects/:projectId/tests/:testId" element={<TestDetailPage />} />
           </Routes>
         </Container>
       </BrowserRouter>

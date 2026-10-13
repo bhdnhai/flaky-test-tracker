@@ -4,11 +4,15 @@ import {
   healthResponseSchema,
   projectsListResponseSchema,
   reportsListResponseSchema,
+  testDetailResponseSchema,
+  testSearchResponseSchema,
   type ErrorCode,
   type FlakyTestsListResponse,
   type HealthResponse,
   type ProjectsListResponse,
   type ReportsListResponse,
+  type TestDetailResponse,
+  type TestSearchResponse,
 } from '@ftt/contracts';
 import type { z } from 'zod';
 
@@ -57,5 +61,21 @@ export function getFlakyTests(projectId: string): Promise<FlakyTestsListResponse
   return getJson(
     `/api/v1/projects/${encodeURIComponent(projectId)}/flaky-tests`,
     flakyTestsListResponseSchema,
+  );
+}
+
+/** FR-24, FR-28: Test search on the Flaky Tests page. */
+export function searchTests(projectId: string, query: string): Promise<TestSearchResponse> {
+  return getJson(
+    `/api/v1/projects/${encodeURIComponent(projectId)}/tests?search=${encodeURIComponent(query)}`,
+    testSearchResponseSchema,
+  );
+}
+
+/** FR-25, FR-29: the Test detail page's data. */
+export function getTestDetail(projectId: string, testId: string): Promise<TestDetailResponse> {
+  return getJson(
+    `/api/v1/projects/${encodeURIComponent(projectId)}/tests/${encodeURIComponent(testId)}`,
+    testDetailResponseSchema,
   );
 }
