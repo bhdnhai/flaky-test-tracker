@@ -98,3 +98,35 @@ jobs:
       - run: npm run demo
       - run: npm run test:e2e --workspace apps/web
       - run: docker compose down -v
+
+  dogfood:
+    needs: e2e
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - uses: actions/cache/restore@v6
+        with:
+          path: ${{ env.NODE_MODULES_PATHS }}
+          key: node-modules-${{ runner.os }}-${{ hashFiles('.nvmrc', 'package-lock.json') }}
+          fail-on-cache-miss: true
+      - run: docker compose up -d --build
+      - name: Create dogfood Project
+        id: project
+        run: bash scripts/dogfood.sh setup
+      - run: docker compose --profile demo build demo
+      # The fixture suite is flaky by design (FR-31): a non-zero exit is an expected outcome,
+      # not a job failure. Only the JUnit file it produces matters here.
+      - run: docker compose --profile demo run --rm demo || true
+      - name: Submit Report via the composite action
+        uses: ./.github/actions/submit-report
+        with:
+          url: http://localhost:8080
+          token: ${{ steps.project.outputs.token }}
+          file: fixtures/flaky-suite/runs/result.xml
+      - name: Assert the Report processed with this run's commit and attempt
+        run: bash scripts/dogfood.sh assert ${{ steps.project.outputs.project_id }}
+      - if: always()
+        run: docker compose down -v

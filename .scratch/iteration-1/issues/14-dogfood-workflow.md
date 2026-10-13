@@ -1,6 +1,6 @@
 # 14 — Dogfood workflow: this repository submits its own Reports
 
-Status: ready-for-agent
+Status: resolved
 Priority: stretch
 Blocked by: 13
 
@@ -49,3 +49,13 @@ FR-34 (Should); assumption A4. ACs: AC-31.
 - [ ] One focused commit, Conventional Commits format, referencing this ticket (e.g. `feat(intake): … (#NN)`).
 
 ## Comments
+
+Added the `dogfood` job (needs `e2e`) and `scripts/dogfood.sh`: creates a Project, runs the
+fixture suite once, submits via `uses: ./.github/actions/submit-report`, then asserts the
+Report's `commitSha`/`runAttempt` against `GITHUB_SHA`/`GITHUB_RUN_ATTEMPT`. Verified locally
+against the Compose stack by submitting two distinct fixture-suite outputs for the same commit
+as attempts 1 and 2 (resubmitting identical bytes instead hits FR-12's dedupe, as expected).
+
+Follow-up (needs a real push + "Re-run failed jobs" on GitHub — no remote is configured in this
+sandbox): record both attempts' run links, `commit` and `runAttempt` here, and flip A4 from
+Open to Confirmed in `docs/01-problem-definition.md`.
