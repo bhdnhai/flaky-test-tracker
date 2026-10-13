@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Version | 1.2 (see [Document history](#18-document-history)) |
+| Version | 1.3 (see [Document history](#18-document-history)) |
 | Status | Baseline for implementation |
 | Problem definition | [docs/01-problem-definition.md](01-problem-definition.md) |
 | Glossary | [CONTEXT.md](../CONTEXT.md) |
@@ -484,19 +484,19 @@ The test file column is filled in during implementation.
 
 | Requirement | Priority | Acceptance criteria | Test file(s) |
 |---|---|---|---|
-| FR-01 | M | AC-01, AC-02 | |
-| FR-02 | M | AC-01 | |
-| FR-03 | M | AC-03 | |
-| FR-04 | M | AC-01, AC-02 | |
-| FR-05 | M | AC-04 | |
-| FR-06 | M | AC-03, AC-05 | |
-| FR-07 | M | AC-06 | |
-| FR-08 | M | AC-07 | |
+| FR-01 | M | AC-01, AC-02 | `apps/api/test/projects.int.test.ts` |
+| FR-02 | M | AC-01 | `apps/api/src/projects/token.test.ts`, `apps/api/test/projects.int.test.ts` |
+| FR-03 | M | AC-03 | `apps/api/test/projects.int.test.ts`, `apps/api/test/report-intake.int.test.ts` |
+| FR-04 | M | AC-01, AC-02 | `apps/api/test/projects.int.test.ts` |
+| FR-05 | M | AC-04 | `apps/api/test/report-intake.int.test.ts` |
+| FR-06 | M | AC-03, AC-05 | `apps/api/test/report-intake.int.test.ts` |
+| FR-07 | M | AC-06 | `packages/contracts/src/reports.test.ts`, `apps/api/test/report-intake.int.test.ts` |
+| FR-08 | M | AC-07 | `packages/contracts/src/reports.test.ts`, `apps/api/test/report-intake.int.test.ts`, `apps/api/test/read-api.int.test.ts` |
 | FR-09 | M | AC-08 | |
 | FR-10 | M | AC-09 | |
-| FR-11 | M | AC-04 | |
+| FR-11 | M | AC-04 | `apps/api/test/report-intake.int.test.ts` |
 | FR-12 | M | AC-10 | |
-| FR-13 | M | AC-04, AC-18 | |
+| FR-13 | M | AC-04, AC-18 | `apps/api/test/report-intake.int.test.ts` (AC-04 part; AC-18 comes with ticket 09) |
 | FR-14 | M | AC-11, AC-15 | |
 | FR-15 | M | AC-11 | |
 | FR-16 | M | AC-11, AC-12 | |
@@ -509,11 +509,11 @@ The test file column is filled in during implementation.
 | FR-23 | M | AC-22 | |
 | FR-24 | M | AC-23, AC-24 | |
 | FR-25 | M | AC-25 | |
-| FR-26 | M | AC-26 | |
+| FR-26 | M | AC-26 | `apps/api/test/read-api.int.test.ts`, `apps/web/e2e/reports.spec.ts` |
 | FR-27 | M | AC-26 | |
 | FR-28 | M | AC-23 | |
 | FR-29 | M | AC-25 | |
-| FR-30 | M | AC-26 | |
+| FR-30 | M | AC-26 | `apps/api/test/read-api.int.test.ts`, `apps/web/e2e/reports.spec.ts` (state is always `pending` for now) |
 | FR-31 | M | AC-28, AC-29 | |
 | FR-32 | M | AC-28 | |
 | FR-33 | M | AC-30 | |
@@ -524,7 +524,7 @@ The test file column is filled in during implementation.
 | NFR-03 | | AC-36 | |
 | NFR-04 | | AC-16, AC-17 | |
 | NFR-05 | | AC-13, AC-18 | |
-| NFR-06 | | AC-05 | |
+| NFR-06 | | AC-05 | `apps/api/src/projects/token.test.ts`, `apps/api/test/report-intake.int.test.ts` |
 | NFR-07 | | AC-09 | |
 | NFR-08 | | AC-27 | |
 | NFR-09 | | AC-37 | |
@@ -562,3 +562,4 @@ Problems found and fixed while drafting:
 | 1.0 | 2026-10-13 | Initial baseline for iteration 1 | Derived from the problem definition, ADR-0001 … 0005 and the reporter-output prototype |
 | 1.1 | 2026-10-13 | (1) An expired claim counts as an attempt: after the 3rd, the Report becomes `failed` instead of returning to `pending` (§8). (2) NFR-12 / AC-39 coverage target narrowed to the JUnit interpretation module; Flake detection is covered by integration tests. | Found during design: (1) without it, a Report that crashes the worker every time would loop forever; (2) the design computes Flakes in SQL (design §6), which unit-test coverage can't measure, while integration tests against real PostgreSQL can |
 | 1.2 | 2026-10-13 | No requirement changed. Design corrected (design §2, §4, §8, §10): Node ≥ 22.22; deep-import lint via `eslint-plugin-import-x`; the test-naming rule allows a requirement or ADR ID when no AC covers the test; the web client's unit tests may stub `fetch`; nginx also proxies `/health`; `db` is published on host port 5433. Traceability matrix: first test files for NFR-11, NFR-12, NFR-13. | Found while implementing ticket 01: React Router 8.4 and Testcontainers 12.2 require Node ≥ 22.22, not the ≥ 22.12 the design assumed; `eslint-plugin-import` has no ESLint 10 support; ticket 01 itself asks for tests that no AC covers (the `500` mapping); a native PostgreSQL on the host shadowed port 5432 |
+| 1.3 | 2026-10-13 | No requirement changed. Design corrected (design §4): ReportIntake's documented interface now includes `listForProject`/`findOne`, and the module diagram gets a `readapi --> intake` edge, naming it as the Report table's read owner. Traceability matrix: test files for FR-01 … FR-08, FR-11, FR-13 (partial), FR-26, FR-30, NFR-06. | Found while implementing ticket 02: the design never named which module owns Report *reads* for ReadApi (only ReportQueue, arriving in ticket 03, was given Report-table methods), so the first implementation had `ReadApi` query `PrismaService` directly — a documented-standard violation caught by code review. Reusing `ReportIntake`, which already owns the table's writes, closes the gap without inventing a new module ticket 02 doesn't need. |

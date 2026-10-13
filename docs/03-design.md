@@ -134,6 +134,7 @@ flowchart LR
     processing --> junit[JUnit]
     readapi[ReadApi] --> flake[FlakeAnalysis]
     readapi --> projects
+    readapi --> intake
     cli[Operator CLI] --> projects
     cli --> queue
 ```
@@ -141,7 +142,7 @@ flowchart LR
 | Module | Responsibility | Interface (what callers know) | Must NOT know about |
 |---|---|---|---|
 | **Projects** | Projects and Upload Tokens: create, rotate, resolve a token to a Project | `create(name) → {project, token}`, `rotateToken(name) → token`, `authenticate(bearer) → Project \| null`, `list()`, `get(id)`. Invariants: tokens are returned only by `create`/`rotateToken`; only hashes are stored (FR-02, NFR-06). | HTTP, Reports, XML |
-| **ReportIntake** | Turn one HTTP submission into a stored `pending` Report, or a typed rejection (FR-05 … FR-12) | `submit({project, commit, metadata, contentType, body}) → {report, duplicate}`, or one of the rejection errors from §5. Synchronous checks only. | Parsing test cases, Outcomes, Flakes |
+| **ReportIntake** | Turn one HTTP submission into a stored `pending` Report, or a typed rejection (FR-05 … FR-12); also the Report table's read owner for ReadApi (FR-30), since no other module claims it until ReportQueue's lifecycle methods land in ticket 03 | `submit({project, commit, metadata, contentType, body}) → {report, duplicate}`, or one of the rejection errors from §5; `listForProject(projectId, limit) → Report[]`, `findOne(projectId, reportId) → Report \| null`. | Parsing test cases, Outcomes, Flakes |
 | **ReportQueue** (seam) | The Report lifecycle as a queue: claim, complete, retry, fail, expire (SRS §8) | `claimNext(now) → Report \| null`, `complete(id, result)`, `fail(id, error, now)`, `releaseExpired(now)`, `requeue(id)`. Adapter: the Postgres `report` table with `SKIP LOCKED` ([ADR-0011](adr/0011-report-table-is-the-job-queue.md)). | What a Report contains |
 | **JUnit** | **Pure, deep domain module:** raw XML → test cases with identity, Outcome and failure message, plus Collisions (FR-14 … FR-17) | `interpret(xml: string) → {cases: {classname, name, result, failureMessage?}[], collisions: {classname, name, count}[]}` or `MalformedReport`. No I/O, no Nest. | Databases, Projects, Commits, retries |
 | **ReportProcessing** | The worker loop: claim → interpret → persist Tests and Outcomes idempotently → complete or fail | `processNext(now) → boolean` (whether it did work), `sweep(now)`. The worker entry point calls these on a timer; tests call them directly. | HTTP, the dashboard, ranking |

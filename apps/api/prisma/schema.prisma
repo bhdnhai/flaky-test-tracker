@@ -16,5 +16,53 @@ model Project {
   tokenRotatedAt  DateTime @map("token_rotated_at") @db.Timestamptz(3)
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
+  reports Report[]
+
   @@map("project")
+}
+
+/// One JUnit XML submission for a single Commit, kept unchanged as received (SRS §7).
+model Report {
+  id          String @id @default(uuid()) @db.Uuid
+  projectId   String @map("project_id") @db.Uuid
+  commitSha   String @map("commit_sha")
+  contentHash String @map("content_hash")
+  sizeBytes   Int    @map("size_bytes")
+
+  branch       String?
+  ciRunId      String? @map("ci_run_id")
+  ciRunAttempt Int?    @map("ci_run_attempt")
+  ciJob        String? @map("ci_job")
+
+  /// pending | processing | processed | failed (SRS §8).
+  processingState    String  @default("pending") @map("processing_state")
+  processingAttempts Int     @default(0) @map("processing_attempts")
+  error              String?
+  /// Colliding identities and fixing options (FR-17); set by ticket 03.
+  collisionWarning   Json?   @map("collision_warning")
+
+  receivedAt  DateTime  @default(now()) @map("received_at") @db.Timestamptz(3)
+  processedAt DateTime? @map("processed_at") @db.Timestamptz(3)
+
+  /// Queue claim and back-off columns (design §6, ADR-0011); used starting with ticket 03.
+  claimedAt     DateTime? @map("claimed_at") @db.Timestamptz(3)
+  nextAttemptAt DateTime? @map("next_attempt_at") @db.Timestamptz(3)
+
+  project Project        @relation(fields: [projectId], references: [id])
+  content ReportContent?
+
+  @@unique([projectId, commitSha, contentHash])
+  @@index([processingState, nextAttemptAt, receivedAt])
+  @@index([projectId, receivedAt(sort: Desc)])
+  @@map("report")
+}
+
+/// The Report's raw, unchanged body, kept out of list queries (ADR-0012).
+model ReportContent {
+  reportId String @id @map("report_id") @db.Uuid
+  body     Bytes
+
+  report Report @relation(fields: [reportId], references: [id])
+
+  @@map("report_content")
 }

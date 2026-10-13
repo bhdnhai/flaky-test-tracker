@@ -1,8 +1,12 @@
 import {
   errorEnvelopeSchema,
   healthResponseSchema,
+  projectsListResponseSchema,
+  reportsListResponseSchema,
   type ErrorCode,
   type HealthResponse,
+  type ProjectsListResponse,
+  type ReportsListResponse,
 } from '@ftt/contracts';
 import type { z } from 'zod';
 
@@ -31,4 +35,17 @@ async function getJson<T>(path: string, schema: z.ZodType<T>): Promise<T> {
 
 export function getHealth(): Promise<HealthResponse> {
   return getJson('/health', healthResponseSchema);
+}
+
+/** FR-26: the Projects page's data. */
+export function getProjects(): Promise<ProjectsListResponse> {
+  return getJson('/api/v1/projects', projectsListResponseSchema);
+}
+
+/** FR-30: a Project's Reports page data. */
+export function getProjectReports(projectId: string): Promise<ReportsListResponse> {
+  return getJson(
+    `/api/v1/projects/${encodeURIComponent(projectId)}/reports`,
+    reportsListResponseSchema,
+  );
 }
