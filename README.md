@@ -47,6 +47,39 @@ curl -X POST "localhost:8080/api/v1/reports?commit=$(git rev-parse HEAD)" \
 
 Open the dashboard: Projects → `web-app` → Reports shows the submitted Report, moving from `pending` to `processed` within a second as the worker picks it up.
 
+### Connect your CI
+
+Copy [`.github/actions/submit-report`](.github/actions/submit-report) into your repository, then add one step after your tests run (`if: always()` so a Report is still submitted when tests fail):
+
+```yaml
+- uses: ./.github/actions/submit-report
+  if: always()
+  with:
+    url: https://your-ftt-host
+    token: ${{ secrets.FTT_UPLOAD_TOKEN }}
+    file: report.xml
+```
+
+It reads `GITHUB_SHA`, `GITHUB_REF_NAME`, `GITHUB_RUN_ID`, `GITHUB_RUN_ATTEMPT` and `GITHUB_JOB` and submits with `curl --fail-with-body`, never echoing the token. The plain `curl` equivalent, for a non-Actions runner or for debugging:
+
+```sh
+curl --fail-with-body -X POST \
+  "$URL/api/v1/reports?commit=$GITHUB_SHA&branch=$GITHUB_REF_NAME&runId=$GITHUB_RUN_ID&runAttempt=$GITHUB_RUN_ATTEMPT&job=$GITHUB_JOB" \
+  -H "Authorization: Bearer $FTT_TOKEN" \
+  -H "Content-Type: application/xml" \
+  --data-binary @report.xml
+```
+
+Reporter configuration per runner, so a Test's identity (`classname` + `name`) stays unique ([ADR-0005](docs/adr/0005-test-identity-is-classname-and-name-with-collision-detection.md)):
+
+| Runner                            | Configuration                                                                                              |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Vitest                            | Default JUnit output is already unique: `reporters: ['junit']`, e.g. `outputFile: { junit: 'report.xml' }` |
+| Playwright, more than one project | `['junit', { outputFile: 'report.xml', includeProjectInTestName: true }]`                                  |
+| jest-junit                        | A `classNameTemplate` that contains `{filepath}`, e.g. `"{filepath} {classname}"`                          |
+
+**Reachability from GitHub-hosted runners:** GitHub-hosted runners are on the public internet and can't reach an internal-only deployment. Point `url` at the one publicly exposed route, `POST /api/v1/reports` (rate-limited, token-authenticated, returns no data) — see the [ADR-0002 addendum](docs/adr/0002-upload-token-auth-no-user-login.md#addendum-2026-10-13-reachability-from-github-hosted-runners). Self-hosted runners on the organisation's network can instead reach the deployment directly.
+
 ## Development
 
 Requirements: Node 22.22+ (see [`.nvmrc`](.nvmrc); `nvm use`) and Docker.
@@ -59,15 +92,16 @@ npm run format        # Prettier
 npm test              # unit + integration tests
 ```
 
-| Command                    | What it runs                                                                                                                                                           | Needs                          |
-| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
-| `npm run test:unit`        | Vitest unit tests in `apps/api`, `apps/web`, `packages/contracts`                                                                                                      | Node                           |
-| `npm run test:integration` | API tests over HTTP against a throwaway PostgreSQL started by Testcontainers ([ADR-0010](docs/adr/0010-integration-tests-against-real-postgres-via-testcontainers.md)) | Docker                         |
-| `npm run test:e2e`         | Playwright against the running Compose stack (`npx playwright install chromium` once)                                                                                  | `docker compose up -d --build` |
-| `npm run demo`             | `scripts/demo.sh`: creates/reuses the `demo` Project, runs the fixture suite 10 times, submits each Report, prints the dashboard URL (FR-31, FR-32, NFR-13)            | `docker compose up -d --build` |
-| `npm run perf:load`        | k6: 1 MB Reports at 10 requests/s for 60 s; fails if p95 ack time ≥ 300 ms or any response is non-2xx (AC-34, NFR-01)                                                  | `docker compose up -d --build` |
-| `npm run perf:processing`  | Submits 20 Reports of 1,000 test cases, one at a time; fails if p95 time to `processed` ≥ 5 s (AC-35, NFR-02)                                                          | `docker compose up -d --build` |
-| `npm run perf:reads`       | Seeds 10,000 Tests / 200,000 Outcomes into a disposable Testcontainers database, then times 100 requests to each read endpoint; fails if any p95 ≥ 500 ms (AC-36, NFR-03) | Docker                      |
+| Command                    | What it runs                                                                                                                                                              | Needs                          |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| `npm run test:unit`        | Vitest unit tests in `apps/api`, `apps/web`, `packages/contracts`                                                                                                         | Node                           |
+| `npm run test:integration` | API tests over HTTP against a throwaway PostgreSQL started by Testcontainers ([ADR-0010](docs/adr/0010-integration-tests-against-real-postgres-via-testcontainers.md))    | Docker                         |
+| `npm run test:e2e`         | Playwright against the running Compose stack (`npx playwright install chromium` once)                                                                                     | `docker compose up -d --build` |
+| `npm run test:ci-action`   | Runs `.github/actions/submit-report`'s script against a stub server with fixed `GITHUB_*` vars (AC-30); part of `npm run test:integration`                                | Node                           |
+| `npm run demo`             | `scripts/demo.sh`: creates/reuses the `demo` Project, runs the fixture suite 10 times, submits each Report, prints the dashboard URL (FR-31, FR-32, NFR-13)               | `docker compose up -d --build` |
+| `npm run perf:load`        | k6: 1 MB Reports at 10 requests/s for 60 s; fails if p95 ack time ≥ 300 ms or any response is non-2xx (AC-34, NFR-01)                                                     | `docker compose up -d --build` |
+| `npm run perf:processing`  | Submits 20 Reports of 1,000 test cases, one at a time; fails if p95 time to `processed` ≥ 5 s (AC-35, NFR-02)                                                             | `docker compose up -d --build` |
+| `npm run perf:reads`       | Seeds 10,000 Tests / 200,000 Outcomes into a disposable Testcontainers database, then times 100 requests to each read endpoint; fails if any p95 ≥ 500 ms (AC-36, NFR-03) | Docker                         |
 
 To run the API outside Docker, start only the database and point the API at it (see [`.env.example`](.env.example)):
 

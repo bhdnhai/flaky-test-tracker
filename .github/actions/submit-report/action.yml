@@ -1,0 +1,24 @@
+name: Submit flaky-test-tracker report
+description: >
+  Submits a JUnit XML report to a flaky-test-tracker instance, filling in commit, branch,
+  run ID, run attempt and job from the GitHub Actions run (FR-33).
+inputs:
+  url:
+    description: Base URL of the flaky-test-tracker API (e.g. https://ftt.example.com)
+    required: true
+  token:
+    description: The Project's Upload Token (pass from a secret, never a literal value)
+    required: true
+  file:
+    description: Path to the JUnit XML report to submit
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Submit report
+      shell: bash
+      env:
+        INPUT_URL: ${{ inputs.url }}
+        INPUT_TOKEN: ${{ inputs.token }}
+        INPUT_FILE: ${{ inputs.file }}
+      run: ${{ github.action_path }}/submit.sh

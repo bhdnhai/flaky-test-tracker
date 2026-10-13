@@ -516,7 +516,7 @@ The test file column is filled in during implementation.
 | FR-30 | M | AC-26 | `apps/api/test/read-api.int.test.ts`, `apps/web/e2e/reports.spec.ts` (state is always `pending` for now), `apps/web/e2e/core-workflow.spec.ts` |
 | FR-31 | M | AC-28, AC-29 | `fixtures/flaky-suite/tests/` (AC-29: code-review checklist item, see commit message) |
 | FR-32 | M | AC-28 | `scripts/demo.sh`, `apps/web/e2e/reviewer-demo.spec.ts` |
-| FR-33 | M | AC-30 | |
+| FR-33 | M | AC-30 | `.github/actions/submit-report/test/submit.test.sh` |
 | FR-34 | S | AC-31 | |
 | FR-35 | C | AC-33 | |
 | NFR-01 | | AC-34 | `load/k6-submit.js` |

@@ -1,6 +1,6 @@
 # 13 — CI integration: composite GitHub Action and setup docs
 
-Status: ready-for-agent
+Status: resolved
 Priority: must
 Blocked by: 06
 
@@ -52,3 +52,11 @@ FR-33. ACs: AC-30.
 - [ ] One focused commit, Conventional Commits format, referencing this ticket (e.g. `feat(intake): … (#NN)`).
 
 ## Comments
+
+Built `.github/actions/submit-report` (composite action, pure-bash `submit.sh`: percent-encodes
+`GITHUB_*` metadata into the query string, `curl --fail-with-body`, never echoes the token) plus
+the README "Connect your CI" section (uses: snippet, curl equivalent, reporter config per runner,
+reachability note). AC-30 integration test uses a Node stub server, not Testcontainers/Compose —
+it only needs to see what `submit.sh` sent — wired into `npm run test:integration` as
+`test:ci-action`. No deviations from scope. Follow-up: ticket 14 runs this action for real inside
+this repo's own CI (dogfood).

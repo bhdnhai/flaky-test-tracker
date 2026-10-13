@@ -39,6 +39,8 @@ export default defineConfig(
       // Standalone perf scripts (ticket 12): k6-submit.js targets the k6 runtime, not Node,
       // and none of load/ is part of the TypeScript project graph.
       'load/**',
+      // Composite action scripts (ticket 13): plain bash/Node, not part of the TS project graph.
+      '.github/actions/**',
     ],
   },
   js.configs.recommended,
