@@ -1,0 +1,148 @@
+<testsuites id="" name="" tests="10" failures="2" skipped="2" errors="2" time="5.903058999999999">
+<testsuite name="erroring.spec.ts" timestamp="2026-10-13T08:29:21.448Z" hostname="chromium" tests="1" failures="0" skipped="0" time="0.088" errors="1">
+<testcase name="report ingestion › throws while parsing a malformed report" classname="erroring.spec.ts" time="0.088">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|../../../test-results/erroring-report-ingestion--5f62c--parsing-a-malformed-report-chromium/error-context.md]]
+]]>
+</system-out>
+<error message="malformed report: unexpected end of XML" type="Error">
+<![CDATA[  [chromium] › erroring.spec.ts:4:7 › report ingestion › throws while parsing a malformed report ───
+
+    Error: malformed report: unexpected end of XML
+
+      3 | test.describe("report ingestion", () => {
+      4 |   test("throws while parsing a malformed report", () => {
+    > 5 |     throw new Error("malformed report: unexpected end of XML");
+        |           ^
+      6 |   });
+      7 | });
+      8 |
+        at /app/playwright/tests/erroring.spec.ts:5:11
+
+    Error Context: ../../test-results/erroring-report-ingestion--5f62c--parsing-a-malformed-report-chromium/error-context.md
+]]>
+</error>
+</testcase>
+</testsuite>
+<testsuite name="failing.spec.ts" timestamp="2026-10-13T08:29:21.448Z" hostname="chromium" tests="1" failures="1" skipped="0" time="0.008" errors="0">
+<testcase name="report ingestion › rejects a report with a bad checksum" classname="failing.spec.ts" time="0.008">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|../../../test-results/failing-report-ingestion-r-c795e--report-with-a-bad-checksum-chromium/error-context.md]]
+]]>
+</system-out>
+<failure message="expect(received).toBe(expected) // Object.is equality" type="expect.toBe">
+<![CDATA[  [chromium] › failing.spec.ts:4:7 › report ingestion › rejects a report with a bad checksum ───────
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 5
+    Received: 4
+
+      3 | test.describe("report ingestion", () => {
+      4 |   test("rejects a report with a bad checksum", () => {
+    > 5 |     expect(2 + 2).toBe(5);
+        |                   ^
+      6 |   });
+      7 | });
+      8 |
+        at /app/playwright/tests/failing.spec.ts:5:19
+
+    Error Context: ../../test-results/failing-report-ingestion-r-c795e--report-with-a-bad-checksum-chromium/error-context.md
+]]>
+</failure>
+</testcase>
+</testsuite>
+<testsuite name="flaky.spec.ts" timestamp="2026-10-13T08:29:21.448Z" hostname="chromium" tests="1" failures="0" skipped="0" time="0.082" errors="0">
+<testcase name="report ingestion › duplicate detection › records two concurrent uploads in submission order" classname="flaky.spec.ts" time="0.082">
+</testcase>
+</testsuite>
+<testsuite name="passing.spec.ts" timestamp="2026-10-13T08:29:21.448Z" hostname="chromium" tests="1" failures="0" skipped="0" time="0.051" errors="0">
+<testcase name="report ingestion › accepts a well-formed report" classname="passing.spec.ts" time="0.051">
+</testcase>
+</testsuite>
+<testsuite name="skipped.spec.ts" timestamp="2026-10-13T08:29:21.448Z" hostname="chromium" tests="1" failures="0" skipped="1" time="0" errors="0">
+<testcase name="report ingestion › re-processes a report after a rule change (not implemented yet)" classname="skipped.spec.ts">
+<properties>
+<property name="skip" value="">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="erroring.spec.ts" timestamp="2026-10-13T08:29:21.448Z" hostname="firefox" tests="1" failures="0" skipped="0" time="0.002" errors="1">
+<testcase name="report ingestion › throws while parsing a malformed report" classname="erroring.spec.ts" time="0.002">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|../../../test-results/erroring-report-ingestion--5f62c--parsing-a-malformed-report-firefox/error-context.md]]
+]]>
+</system-out>
+<error message="malformed report: unexpected end of XML" type="Error">
+<![CDATA[  [firefox] › erroring.spec.ts:4:7 › report ingestion › throws while parsing a malformed report ────
+
+    Error: malformed report: unexpected end of XML
+
+      3 | test.describe("report ingestion", () => {
+      4 |   test("throws while parsing a malformed report", () => {
+    > 5 |     throw new Error("malformed report: unexpected end of XML");
+        |           ^
+      6 |   });
+      7 | });
+      8 |
+        at /app/playwright/tests/erroring.spec.ts:5:11
+
+    Error Context: ../../test-results/erroring-report-ingestion--5f62c--parsing-a-malformed-report-firefox/error-context.md
+]]>
+</error>
+</testcase>
+</testsuite>
+<testsuite name="failing.spec.ts" timestamp="2026-10-13T08:29:21.448Z" hostname="firefox" tests="1" failures="1" skipped="0" time="0.006" errors="0">
+<testcase name="report ingestion › rejects a report with a bad checksum" classname="failing.spec.ts" time="0.006">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|../../../test-results/failing-report-ingestion-r-c795e--report-with-a-bad-checksum-firefox/error-context.md]]
+]]>
+</system-out>
+<failure message="expect(received).toBe(expected) // Object.is equality" type="expect.toBe">
+<![CDATA[  [firefox] › failing.spec.ts:4:7 › report ingestion › rejects a report with a bad checksum ────────
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 5
+    Received: 4
+
+      3 | test.describe("report ingestion", () => {
+      4 |   test("rejects a report with a bad checksum", () => {
+    > 5 |     expect(2 + 2).toBe(5);
+        |                   ^
+      6 |   });
+      7 | });
+      8 |
+        at /app/playwright/tests/failing.spec.ts:5:19
+
+    Error Context: ../../test-results/failing-report-ingestion-r-c795e--report-with-a-bad-checksum-firefox/error-context.md
+]]>
+</failure>
+</testcase>
+</testsuite>
+<testsuite name="flaky.spec.ts" timestamp="2026-10-13T08:29:21.448Z" hostname="firefox" tests="1" failures="0" skipped="0" time="0.022" errors="0">
+<testcase name="report ingestion › duplicate detection › records two concurrent uploads in submission order" classname="flaky.spec.ts" time="0.022">
+</testcase>
+</testsuite>
+<testsuite name="passing.spec.ts" timestamp="2026-10-13T08:29:21.448Z" hostname="firefox" tests="1" failures="0" skipped="0" time="0.003" errors="0">
+<testcase name="report ingestion › accepts a well-formed report" classname="passing.spec.ts" time="0.003">
+</testcase>
+</testsuite>
+<testsuite name="skipped.spec.ts" timestamp="2026-10-13T08:29:21.448Z" hostname="firefox" tests="1" failures="0" skipped="1" time="0" errors="0">
+<testcase name="report ingestion › re-processes a report after a rule change (not implemented yet)" classname="skipped.spec.ts">
+<properties>
+<property name="skip" value="">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+</testsuites>

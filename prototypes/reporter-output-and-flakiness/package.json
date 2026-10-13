@@ -1,0 +1,29 @@
+{
+  "name": "reporter-output-and-flakiness-prototype",
+  "private": true,
+  "version": "0.0.0",
+  "description": "THROWAWAY prototype. Not part of the product. See README.md.",
+  "scripts": {
+    "test:vitest": "vitest run --config vitest/vitest.config.ts",
+    "test:vitest:retry": "vitest run --config vitest/vitest.config.ts --retry=2",
+    "test:playwright": "playwright test --config playwright/playwright.config.ts",
+    "test:playwright:retry": "playwright test --config playwright/playwright.config.ts --retries=2",
+    "test:jest": "jest --config jest/jest.config.cjs",
+    "demo": "tsx scripts/run.ts",
+    "demo:docker": "bash scripts/docker-run.sh"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.29.7",
+    "@babel/plugin-transform-modules-commonjs": "^7.29.7",
+    "@babel/preset-typescript": "^7.29.7",
+    "@playwright/test": "^1.64.0",
+    "@types/node": "^22.16.0",
+    "babel-jest": "^30.5.2",
+    "fast-xml-parser": "^5.11.2",
+    "jest": "^30.5.2",
+    "jest-junit": "^17.0.0",
+    "tsx": "^4.23.15",
+    "typescript": "^5.7.3",
+    "vitest": "^5.0.4"
+  }
+}

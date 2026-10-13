@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="5" failures="3" errors="0" time="13.299">
+  <testsuite name="report ingestion" errors="0" failures="0" skipped="1" timestamp="2026-10-13T08:37:04" time="6.704" tests="1">
+    <testcase classname="report ingestion re-processes a report after a rule change (not implemented yet)" name="report ingestion re-processes a report after a rule change (not implemented yet)" time="0">
+      <skipped/>
+    </testcase>
+  </testsuite>
+  <testsuite name="report ingestion" errors="0" failures="0" skipped="0" timestamp="2026-10-13T08:37:04" time="7.006" tests="1">
+    <testcase classname="report ingestion accepts a well-formed report" name="report ingestion accepts a well-formed report" time="0.01">
+    </testcase>
+  </testsuite>
+  <testsuite name="report ingestion" errors="0" failures="1" skipped="0" timestamp="2026-10-13T08:37:03" time="7.908" tests="1">
+    <testcase classname="report ingestion throws while parsing a malformed report" name="report ingestion throws while parsing a malformed report" time="0.008">
+      <failure>Error: malformed report: unexpected end of XML
+    at Object.&lt;anonymous&gt; (/app/jest/fixtures/erroring.test.ts:3:11)
+    at Promise.finally.completed (/app/node_modules/jest-circus/build/jestAdapterInit.js:1834:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/app/node_modules/jest-circus/build/jestAdapterInit.js:1774:10)
+    at _callCircusTest (/app/node_modules/jest-circus/build/jestAdapterInit.js:1167:40)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at _runTestInContext (/app/node_modules/jest-circus/build/jestAdapterInit.js:1103:3)
+    at runTestWithContext (/app/node_modules/jest-circus/build/jestAdapterInit.js:996:5)
+    at _runTestsForDescribeBlockOnce (/app/node_modules/jest-circus/build/jestAdapterInit.js:1008:11)
+    at _runTestsForDescribeBlock (/app/node_modules/jest-circus/build/jestAdapterInit.js:824:5)
+    at _runTestsForDescribeBlockOnce (/app/node_modules/jest-circus/build/jestAdapterInit.js:1003:11)
+    at _runTestsForDescribeBlock (/app/node_modules/jest-circus/build/jestAdapterInit.js:824:5)
+    at run (/app/node_modules/jest-circus/build/jestAdapterInit.js:789:3)
+    at runAndTransformResultsToJestFormat (/app/node_modules/jest-circus/build/jestAdapterInit.js:2300:21)
+    at jestAdapter (/app/node_modules/jest-circus/build/runner.js:111:19)
+    at runTestInternal (/app/node_modules/jest-runner/build/testWorker.js:247:16)
+    at runTest (/app/node_modules/jest-runner/build/testWorker.js:315:7)
+    at Object.worker (/app/node_modules/jest-runner/build/testWorker.js:479:12)</failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="report ingestion" errors="0" failures="1" skipped="0" timestamp="2026-10-13T08:37:04" time="7.116" tests="1">
+    <testcase classname="report ingestion rejects a report with a bad checksum" name="report ingestion rejects a report with a bad checksum" time="0.097">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 5
+Received: 4
+    at Object.toBe (/app/jest/fixtures/failing.test.ts:3:19)
+    at Promise.finally.completed (/app/node_modules/jest-circus/build/jestAdapterInit.js:1834:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/app/node_modules/jest-circus/build/jestAdapterInit.js:1774:10)
+    at _callCircusTest (/app/node_modules/jest-circus/build/jestAdapterInit.js:1167:40)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at _runTestInContext (/app/node_modules/jest-circus/build/jestAdapterInit.js:1103:3)
+    at runTestWithContext (/app/node_modules/jest-circus/build/jestAdapterInit.js:996:5)
+    at _runTestsForDescribeBlockOnce (/app/node_modules/jest-circus/build/jestAdapterInit.js:1008:11)
+    at _runTestsForDescribeBlock (/app/node_modules/jest-circus/build/jestAdapterInit.js:824:5)
+    at _runTestsForDescribeBlockOnce (/app/node_modules/jest-circus/build/jestAdapterInit.js:1003:11)
+    at _runTestsForDescribeBlock (/app/node_modules/jest-circus/build/jestAdapterInit.js:824:5)
+    at run (/app/node_modules/jest-circus/build/jestAdapterInit.js:789:3)
+    at runAndTransformResultsToJestFormat (/app/node_modules/jest-circus/build/jestAdapterInit.js:2300:21)
+    at jestAdapter (/app/node_modules/jest-circus/build/runner.js:111:19)
+    at runTestInternal (/app/node_modules/jest-runner/build/testWorker.js:247:16)
+    at runTest (/app/node_modules/jest-runner/build/testWorker.js:315:7)
+    at Object.worker (/app/node_modules/jest-runner/build/testWorker.js:479:12)</failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="report ingestion" errors="0" failures="1" skipped="0" timestamp="2026-10-13T08:37:03" time="8.215" tests="1">
+    <testcase classname="report ingestion duplicate detection records two concurrent uploads in submission order" name="report ingestion duplicate detection records two concurrent uploads in submission order" time="0.03">
+      <failure>Error: expect(received).toEqual(expected) // deep equality
+
+- Expected  - 1
++ Received  + 1
+
+  Array [
+-   &quot;first&quot;,
+    &quot;second&quot;,
++   &quot;first&quot;,
+  ]
+    at Object.toEqual (/app/jest/fixtures/flaky.test.ts:7:19)</failure>
+    </testcase>
+  </testsuite>
+</testsuites>
