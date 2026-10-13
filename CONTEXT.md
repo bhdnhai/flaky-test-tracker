@@ -33,7 +33,7 @@ A secret issued per Project that lets CI submit Reports for that Project and not
 _Avoid_: API key, CI key, access token
 
 **Report**:
-One JUnit XML document submitted by CI for a single Commit, kept unchanged as received. A Report with the same content as one already received for the Project is a duplicate and is ignored.
+One JUnit XML document submitted by CI for a single Commit, kept unchanged as received. A Report with the same Commit and byte-identical content as one already received for the Project is a duplicate and is ignored.
 _Avoid_: Upload, artifact, JUnit file, test run
 
 **Commit**:

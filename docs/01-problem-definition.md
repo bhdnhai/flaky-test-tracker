@@ -57,8 +57,8 @@ The Engineer and the Tech Lead see the same data with the same permissions. They
   - a missing or malformed Commit SHA;
   - an empty or oversized body;
   - a body that isn't well-formed JUnit XML.
-- Duplicate Reports (same content, same Project) are ignored.
-- Raw Reports are stored unchanged and processed asynchronously. Each Report shows a processing state: pending, processed or failed, with the error.
+- Duplicate Reports (same Project, same Commit, identical content) are ignored.
+- Raw Reports are stored unchanged and processed asynchronously. Each Report shows a processing state: pending, processing, processed or failed, with the error.
 
 **Analysis**
 - A Test is identified by Project + JUnit `classname` + `name`, exactly as reported (ADR-0005).
@@ -122,13 +122,15 @@ The Engineer and the Tech Lead see the same data with the same permissions. They
 
 ## Open questions
 
-These are answered in the SRS unless marked otherwise.
+Resolved in [the SRS](02-srs.md) v1.0:
+- Ranking window: 14 days, configurable by the Operator (FR-22).
+- Report size limit: 10 MB (FR-09).
+- Failure messages: truncated to 8 KB and stored without redaction; this is a recorded security risk (FR-16, SRS §10).
+- When a Flaky Test stops being flaky: it drops out of the windowed ranking. An explicit "fixed" state is iteration 2.
 
-- How long is the ranking window (14 days?), and is it configurable?
-- What is the size limit for a Report?
-- Failure messages can contain secrets or personal data printed by tests. Do we store them as they are, truncate them, or redact them?
-- When does a Flaky Test stop being flaky? A fixed test drops out of a time-windowed ranking on its own. An explicit "fixed" state is iteration 2.
-- How does CI submit: a documented `curl` step, or a published GitHub Action? (Design decision.)
+Still open, for the design step:
+- How does CI submit: a documented `curl` step, or a GitHub Action in this repository?
+- How do GitHub-hosted runners reach an internal deployment: a public submission-only endpoint, or self-hosted runners?
 
 ## Success criteria
 
