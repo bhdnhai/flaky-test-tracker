@@ -161,3 +161,13 @@ shows only one Outcome); our measured rates (35-60%) keep that risk low single d
   **Test** identity, or warrants a new ADR on including reporter `hostname` in identity.
 - `/mattpocock-skills:research` — only if jest-junit's `classNameTemplate`/`titleTemplate` options
   need deeper confirmation from its docs before writing the SRS parsing rules.
+
+## Review note (added on review, 2026-10-13)
+
+The **Test identity** recommendation above, "fold `<testsuite hostname>` into the Test's identity; Vitest and Jest don't set a meaningful `hostname`", is **wrong** and was not adopted.
+
+The raw XML on the prototype branch shows that Vitest writes the **machine's hostname** into that attribute: `hostname="MacBook-Air-von-admin.local"` on the host and `hostname="8fe268cac16d"` in Docker. On GitHub-hosted runners that value changes from job to job, so including it would give every Vitest Test a new identity on every run, and no Flake would ever be found. The prototype missed this because all 20 host runs happened on the same machine, which also made the identity look "stable".
+
+The two findings themselves stand: Playwright multi-project collisions and jest-junit default-template collisions. They are handled by [ADR-0005](../../../docs/adr/0005-test-identity-is-classname-and-name-with-collision-detection.md): identity stays `classname` + `name` as reported, uniqueness comes from the documented reporter options (`includeProjectInTestName`, `classNameTemplate` with `{filepath}`), and Collisions are detected and excluded rather than guessed.
+
+Also checked on review: the identical host and Docker failure rates (35/35, 55/55, 40/40) are a coincidence, not copied data. The run-by-run pass/fail sequences in the two `summary.json` files differ.

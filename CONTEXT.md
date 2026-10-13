@@ -43,8 +43,12 @@ _Avoid_: Revision, version, build
 ### Analysis
 
 **Test**:
-A single test case within a Project, identified by its JUnit `classname` and `name` exactly as reported. A renamed test is a new Test.
+A single test case within a Project, identified by its JUnit `classname` and `name` exactly as reported. A renamed test is a new Test. Two test cases in one Report that share both values are a **Collision**, not one Test.
 _Avoid_: Test case, spec, check
+
+**Collision**:
+Two or more test cases in the same Report with an identical `classname` and `name`. They are excluded from Flake detection for that Report, and the Report carries a warning.
+_Avoid_: Duplicate test, clash, conflict
 
 **Outcome**:
 The result a Test had in one Report: passed, failed or skipped. A JUnit `failure` and a JUnit `error` are both failed.

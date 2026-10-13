@@ -61,7 +61,10 @@ The Engineer and the Tech Lead see the same data with the same permissions. They
 - Raw Reports are stored unchanged and processed asynchronously. Each Report shows a processing state: pending, processed or failed, with the error.
 
 **Analysis**
-- A Test is identified by Project + JUnit `classname` + `name`, exactly as reported.
+- A Test is identified by Project + JUnit `classname` + `name`, exactly as reported (ADR-0005).
+- **Collisions** (the same `classname` + `name` twice in one Report) are excluded from Flake detection for that Report, and the Report shows a warning naming the reporter option that fixes them:
+  - Playwright with several projects: `includeProjectInTestName: true`.
+  - jest-junit: a `classNameTemplate` that includes `{filepath}`.
 - How JUnit results become Outcomes:
 
   | In the JUnit XML | Outcome |
@@ -70,18 +73,20 @@ The Engineer and the Tech Lead see the same data with the same permissions. They
   | `failure` or `error` | failed (the failure message is kept) |
   | `skipped` | skipped (ignored by flakiness detection) |
 
+  The prototype confirmed this mapping for all three reporters. Retries are **not** read as a signal (see A5).
+
 - Flake detection per ADR-0004.
 
 **Dashboard** (read-only, no login)
 - **Flaky Tests** list per Project, ranked by Flake count in a recent window, with the most recent Flake breaking ties.
 - **Test** detail: Outcome history grouped by Commit, with failure messages.
-- **Reports** list per Project: received Reports with their processing state, so you can confirm data is arriving.
+- **Reports** list per Project: received Reports with their processing state and any Collision warning, so you can confirm data is arriving and is usable.
 
 **Validation and demo**
 - A **genuinely flaky** fixture test suite in the repository (Vitest):
-  - Real race conditions, shared state and order dependencies, each tuned to fail about 50% of the time.
+  - Flakiness comes from a **completion-order race**: two concurrent jobs, each with a random delay, and the test assumes a fixed finishing order. Because the two delays are drawn from the same distribution, either job finishes first with equal probability, so P(fail) ≈ 0.5 whatever the machine speed. The prototype measured 35–60% on both an M1 laptop and a `--cpus=0.5` container. A naive "lost update" race was tried and rejected because it failed 65–100% of the time.
   - One consistently broken test.
-  - Nothing is scripted to fail on a given attempt. With p ≈ 0.5 over 10 runs, the chance a flaky test shows only one Outcome is about 0.2%.
+  - Nothing is scripted to fail on a given attempt. Even at the lowest measured rate (35%), the chance a flaky test shows only one Outcome over 10 runs is about 1.4%.
 - `npm run demo` creates a demo Project, runs the fixture suite about 10 times on the current git Commit, and submits each real JUnit output through the same endpoint CI uses.
 - Optional: `demo:playwright`, with Playwright fixtures for the UI-timing pattern. It needs browser installs.
 - *Should:* this repository's own GitHub Actions workflow runs the fixture suite and submits to the API, started as a service container inside the job. Re-running the job produces a real Flake on a real `GITHUB_SHA`.
@@ -104,16 +109,16 @@ The Engineer and the Tech Lead see the same data with the same permissions. They
 
 ## Assumptions
 
-| # | Assumption | How we'd find out it's wrong |
-|---|---|---|
-| A1 | Teams re-run failed jobs often enough to produce evidence on the same Commit. | Check how often `GITHUB_RUN_ATTEMPT > 1` appears in a real repository's history. |
-| A2 | Vitest, Playwright and jest-junit fill `classname`/`name` in a way that is stable across runs. | Run the fixture suite through the real reporters and compare identities across runs. |
-| A3 | Runner or environment differences on the same Commit are rare enough that counting them as flakiness doesn't mislead. | Look for Flakes that only happen between different jobs (by job name) rather than within one job. |
-| A4 | For `pull_request` workflows, a re-run keeps the same SHA, the test merge commit. | Re-run a PR workflow and compare `GITHUB_SHA` across attempts. |
-| A5 | Retries inside a runner (Playwright `retries`) are visible in its JUnit output. If not, only cross-run evidence counts. | Run the fixture suite with retries on and read the generated XML. |
-| A6 | An internal network is an acceptable security boundary for a no-login dashboard. | Ask target teams' security or ops. Failing that is the trigger to add OIDC (ADR-0002). |
-| A7 | Report sizes stay within a few MB. | Measure fixture output and extrapolate to a suite of about 5k tests. |
-| A8 | The fixture suite's flakiness (about 50%) holds on different machines, even though timing-based races depend on CPU speed. | Run the demo on a fast laptop, a slow container and GitHub Actions, and compare failure rates. |
+| # | Assumption | How we'd find out it's wrong | Status |
+|---|---|---|---|
+| A1 | Teams re-run failed jobs often enough to produce evidence on the same Commit. | Check how often `GITHUB_RUN_ATTEMPT > 1` appears in a real repository's history. | Open |
+| A2 | Vitest, Playwright and jest-junit fill `classname`/`name` in a way that is stable across runs. | Run the fixture suite through the real reporters and compare identities across runs. | **Partially refuted** by the prototype. Stable across runs for all three reporters, but **not unique**: Playwright with several projects emits identical `classname` + `name` per browser, and jest-junit's default templates collide for tests with the same wording in different files. See ADR-0005. |
+| A3 | Runner or environment differences on the same Commit are rare enough that counting them as flakiness doesn't mislead. | Look for Flakes that only happen between different jobs (by job name) rather than within one job. | Open |
+| A4 | For `pull_request` workflows, a re-run keeps the same SHA, the test merge commit. | Re-run a PR workflow and compare `GITHUB_SHA` across attempts. | Open |
+| A5 | Retries inside a runner (Playwright `retries`) are visible in its JUnit output. If not, only cross-run evidence counts. | Run the fixture suite with retries on and read the generated XML. | **Partially confirmed** by the prototype. Visible only when every attempt fails (Vitest repeats `<failure>`; Playwright labels `Retry #n` in the failure text). A test rescued by a retry looks like a plain pass. Retries are not used as a signal in iteration 1; only evidence across Reports counts. |
+| A6 | An internal network is an acceptable security boundary for a no-login dashboard. | Ask target teams' security or ops. Failing that is the trigger to add OIDC (ADR-0002). | Open |
+| A7 | Report sizes stay within a few MB. | Measure fixture output and extrapolate to a suite of about 5k tests. | Open |
+| A8 | The fixture suite's flakiness (about 50%) holds on different machines, even though timing-based races depend on CPU speed. | Run the demo on a fast laptop, a slow container and GitHub Actions, and compare failure rates. | **Confirmed** by the prototype for the completion-order race: 35–60% on both an M1 laptop and a `--cpus=0.5` container, within binomial noise at n = 20. Not yet measured on GitHub Actions. |
 
 ## Open questions
 
