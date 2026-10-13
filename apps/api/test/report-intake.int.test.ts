@@ -183,7 +183,7 @@ describe('POST /api/v1/reports', () => {
     expect(withNew.status).toBe(202);
   });
 
-  it('FR-11: refuses a submission whose Content-Type is not application/xml or text/xml, instead of silently storing empty content', async () => {
+  it('AC-08, FR-11: refuses a submission whose Content-Type is not application/xml or text/xml, instead of silently storing empty content', async () => {
     const { server, projects, prisma } = await createContext();
     const { token } = await projects.create('web-app');
 
@@ -193,8 +193,130 @@ describe('POST /api/v1/reports', () => {
       .set('Content-Type', 'application/json')
       .send(SAMPLE_JUNIT_XML);
 
-    expect(res.status).toBe(400);
-    expect(errorEnvelopeSchema.parse(res.body).error.code).toBe('VALIDATION_ERROR');
+    expect(res.status).toBe(415);
+    expect(errorEnvelopeSchema.parse(res.body).error.code).toBe('UNSUPPORTED_MEDIA_TYPE');
     expect(await prisma.report.count()).toBe(0);
+  });
+
+  it('AC-08: rejects an empty body with 400 EMPTY_REPORT, storing nothing', async () => {
+    const { server, projects, prisma } = await createContext();
+    const { token } = await projects.create('web-app');
+
+    const res = await request(server)
+      .post(`/api/v1/reports?commit=${SOME_COMMIT}`)
+      .set('Authorization', `Bearer ${token}`)
+      .set('Content-Type', 'application/xml')
+      .send('');
+
+    expect(res.status).toBe(400);
+    expect(errorEnvelopeSchema.parse(res.body).error.code).toBe('EMPTY_REPORT');
+    expect(await prisma.report.count()).toBe(0);
+  });
+
+  it('AC-08: rejects a body over 10 MB with 413 REPORT_TOO_LARGE, storing nothing', async () => {
+    const { server, projects, prisma } = await createContext();
+    const { token } = await projects.create('web-app');
+    const tooLarge = Buffer.alloc(10 * 1024 * 1024 + 1, 'a');
+
+    const res = await request(server)
+      .post(`/api/v1/reports?commit=${SOME_COMMIT}`)
+      .set('Authorization', `Bearer ${token}`)
+      .set('Content-Type', 'application/xml')
+      .send(tooLarge);
+
+    expect(res.status).toBe(413);
+    expect(errorEnvelopeSchema.parse(res.body).error.code).toBe('REPORT_TOO_LARGE');
+    expect(await prisma.report.count()).toBe(0);
+  });
+
+  it.each([
+    ['truncated XML', '<testsuite name="x"><testcase classname="C" name="t">'],
+    ['a non-report root element', '<html><body>not a report</body></html>'],
+    [
+      'a DOCTYPE with a SYSTEM external entity',
+      '<!DOCTYPE x [<!ENTITY e SYSTEM "file:///etc/passwd">]><testsuite>&e;</testsuite>',
+    ],
+  ])('AC-09, NFR-07: rejects %s with 422 MALFORMED_REPORT, storing nothing', async (_label, xml) => {
+    const { server, projects, prisma } = await createContext();
+    const { token } = await projects.create('web-app');
+
+    const res = await request(server)
+      .post(`/api/v1/reports?commit=${SOME_COMMIT}`)
+      .set('Authorization', `Bearer ${token}`)
+      .set('Content-Type', 'application/xml')
+      .send(xml);
+
+    expect(res.status).toBe(422);
+    expect(errorEnvelopeSchema.parse(res.body).error.code).toBe('MALFORMED_REPORT');
+    expect(await prisma.report.count()).toBe(0);
+  });
+
+  it('AC-10: resubmitting the identical body for the same Commit is a safe no-op: 200, the original id, duplicate: true, one Report', async () => {
+    const { server, projects, prisma } = await createContext();
+    const { token } = await projects.create('web-app');
+
+    const first = await request(server)
+      .post(`/api/v1/reports?commit=${SOME_COMMIT}`)
+      .set('Authorization', `Bearer ${token}`)
+      .set('Content-Type', 'application/xml')
+      .send(SAMPLE_JUNIT_XML);
+    const second = await request(server)
+      .post(`/api/v1/reports?commit=${SOME_COMMIT}`)
+      .set('Authorization', `Bearer ${token}`)
+      .set('Content-Type', 'application/xml')
+      .send(SAMPLE_JUNIT_XML);
+
+    expect(first.status).toBe(202);
+    expect(second.status).toBe(200);
+    const firstBody = submitReportResponseSchema.parse(first.body);
+    const secondBody = submitReportResponseSchema.parse(second.body);
+    expect(secondBody).toMatchObject({ id: firstBody.id, duplicate: true });
+    expect(await prisma.report.count()).toBe(1);
+  });
+
+  it('AC-10: resubmitting the identical body for a different Commit is a new Report: 202, a new id', async () => {
+    const { server, projects } = await createContext();
+    const { token } = await projects.create('web-app');
+    const otherCommit = 'b'.repeat(40);
+
+    const first = await request(server)
+      .post(`/api/v1/reports?commit=${SOME_COMMIT}`)
+      .set('Authorization', `Bearer ${token}`)
+      .set('Content-Type', 'application/xml')
+      .send(SAMPLE_JUNIT_XML);
+    const second = await request(server)
+      .post(`/api/v1/reports?commit=${otherCommit}`)
+      .set('Authorization', `Bearer ${token}`)
+      .set('Content-Type', 'application/xml')
+      .send(SAMPLE_JUNIT_XML);
+
+    expect(second.status).toBe(202);
+    const firstBody = submitReportResponseSchema.parse(first.body);
+    const secondBody = submitReportResponseSchema.parse(second.body);
+    expect(secondBody.id).not.toBe(firstBody.id);
+  });
+
+  it('AC-10: two concurrent identical submissions for the same Commit race-safely produce one Report', async () => {
+    const { server, projects, prisma } = await createContext();
+    const { token } = await projects.create('web-app');
+
+    const [a, b] = await Promise.all([
+      request(server)
+        .post(`/api/v1/reports?commit=${SOME_COMMIT}`)
+        .set('Authorization', `Bearer ${token}`)
+        .set('Content-Type', 'application/xml')
+        .send(SAMPLE_JUNIT_XML),
+      request(server)
+        .post(`/api/v1/reports?commit=${SOME_COMMIT}`)
+        .set('Authorization', `Bearer ${token}`)
+        .set('Content-Type', 'application/xml')
+        .send(SAMPLE_JUNIT_XML),
+    ]);
+
+    const statuses = [a.status, b.status].sort();
+    expect(statuses).toEqual([200, 202]);
+    const ids = [a.body, b.body].map((body) => submitReportResponseSchema.parse(body).id);
+    expect(ids[0]).toBe(ids[1]);
+    expect(await prisma.report.count()).toBe(1);
   });
 });

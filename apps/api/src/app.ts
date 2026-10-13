@@ -13,7 +13,10 @@ const REPORT_BODY_LIMIT = '10mb';
 
 /** Builds the HTTP application. Used by main.ts and the tests. */
 export async function createApp(config: AppConfig): Promise<INestApplication> {
-  const app = await NestFactory.create(AppModule.forRoot(config));
+  // Nest's default global body parser would otherwise try to JSON-parse a wrong-Content-Type
+  // submission body itself, failing with a generic 400 before the 415 check (design §5, ticket
+  // 07) ever runs. The only route with a body is the submission route, parsed below.
+  const app = await NestFactory.create(AppModule.forRoot(config), { bodyParser: false });
   // The submission body is the raw JUnit XML document, not JSON (design §5).
   app.use(
     '/api/v1/reports',

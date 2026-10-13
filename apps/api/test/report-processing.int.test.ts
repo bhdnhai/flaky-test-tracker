@@ -55,7 +55,7 @@ describe('ReportProcessingService (via the Nest application context)', () => {
   it('AC-11: processes a passing, a failed, an errored and a skipped test case into 4 Tests and their Outcomes, and marks the Report processed', async () => {
     const { projects, reportIntake, processing, prisma } = await createContext();
     const { project } = await projects.create('web-app');
-    const submitted = await reportIntake.submit({
+    const { report: submitted } = await reportIntake.submit({
       project,
       commitSha: SOME_COMMIT,
       metadata: {},
@@ -114,7 +114,7 @@ describe('ReportProcessingService (via the Nest application context)', () => {
 </testsuites>`;
     const { projects, reportIntake, processing, prisma } = await createContext();
     const { project } = await projects.create('web-app');
-    const submitted = await reportIntake.submit({
+    const { report: submitted } = await reportIntake.submit({
       project,
       commitSha: SOME_COMMIT,
       metadata: {},

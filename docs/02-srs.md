@@ -492,10 +492,10 @@ The test file column is filled in during implementation.
 | FR-06 | M | AC-03, AC-05 | `apps/api/test/report-intake.int.test.ts` |
 | FR-07 | M | AC-06 | `packages/contracts/src/reports.test.ts`, `apps/api/test/report-intake.int.test.ts` |
 | FR-08 | M | AC-07 | `packages/contracts/src/reports.test.ts`, `apps/api/test/report-intake.int.test.ts`, `apps/api/test/read-api.int.test.ts` |
-| FR-09 | M | AC-08 | |
-| FR-10 | M | AC-09 | |
+| FR-09 | M | AC-08 | `apps/api/test/report-intake.int.test.ts` |
+| FR-10 | M | AC-09 | `apps/api/src/report-intake/xml-pre-check.test.ts`, `apps/api/test/report-intake.int.test.ts` |
 | FR-11 | M | AC-04 | `apps/api/test/report-intake.int.test.ts` |
-| FR-12 | M | AC-10 | |
+| FR-12 | M | AC-10 | `apps/api/test/report-intake.int.test.ts` |
 | FR-13 | M | AC-04, AC-18 | `apps/api/test/report-intake.int.test.ts` (AC-04 part), `apps/api/test/report-processing.int.test.ts` (background processing part; AC-18 comes with ticket 09) |
 | FR-14 | M | AC-11, AC-15 | `apps/api/src/junit/junit.test.ts`, `apps/api/test/report-processing.int.test.ts` (AC-15's Playwright-project part comes with ticket 08) |
 | FR-15 | M | AC-11 | `apps/api/src/junit/junit.test.ts`, `apps/api/test/report-processing.int.test.ts` |
@@ -525,7 +525,7 @@ The test file column is filled in during implementation.
 | NFR-04 | | AC-16, AC-17 | |
 | NFR-05 | | AC-13, AC-18 | |
 | NFR-06 | | AC-05 | `apps/api/src/projects/token.test.ts`, `apps/api/test/report-intake.int.test.ts` |
-| NFR-07 | | AC-09 | |
+| NFR-07 | | AC-09 | `apps/api/src/report-intake/xml-pre-check.test.ts`, `apps/api/test/report-intake.int.test.ts` |
 | NFR-08 | | AC-27 | |
 | NFR-09 | | AC-37 | |
 | NFR-10 | | AC-38 | |
