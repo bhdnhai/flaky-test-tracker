@@ -60,11 +60,23 @@ export class ReportQueueService {
     };
   }
 
-  /** Marks a claimed Report `processed`. Called inside the processing transaction. */
-  complete(tx: Prisma.TransactionClient, reportId: string, now: Date): Promise<unknown> {
+  /**
+   * Marks a claimed Report `processed`. Called inside the processing transaction.
+   * `collisionWarning` (FR-17) is set when given, left untouched otherwise.
+   */
+  complete(
+    tx: Prisma.TransactionClient,
+    reportId: string,
+    now: Date,
+    collisionWarning?: Prisma.InputJsonValue,
+  ): Promise<unknown> {
     return tx.report.update({
       where: { id: reportId },
-      data: { processingState: 'processed', processedAt: now },
+      data: {
+        processingState: 'processed',
+        processedAt: now,
+        ...(collisionWarning !== undefined ? { collisionWarning } : {}),
+      },
     });
   }
 }

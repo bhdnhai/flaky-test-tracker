@@ -497,10 +497,10 @@ The test file column is filled in during implementation.
 | FR-11 | M | AC-04 | `apps/api/test/report-intake.int.test.ts` |
 | FR-12 | M | AC-10 | `apps/api/test/report-intake.int.test.ts` |
 | FR-13 | M | AC-04, AC-18 | `apps/api/test/report-intake.int.test.ts` (AC-04 part), `apps/api/test/report-processing.int.test.ts` (background processing part; AC-18 comes with ticket 09) |
-| FR-14 | M | AC-11, AC-15 | `apps/api/src/junit/junit.test.ts`, `apps/api/test/report-processing.int.test.ts` (AC-15's Playwright-project part comes with ticket 08) |
+| FR-14 | M | AC-11, AC-15 | `apps/api/src/junit/junit.test.ts`, `apps/api/test/report-processing.int.test.ts` |
 | FR-15 | M | AC-11 | `apps/api/src/junit/junit.test.ts`, `apps/api/test/report-processing.int.test.ts` |
 | FR-16 | M | AC-11, AC-12 | `apps/api/src/junit/junit.test.ts` |
-| FR-17 | M | AC-14, AC-15 | `apps/api/test/report-processing.int.test.ts` (naive handling only — no warning yet; AC-14/15 land with ticket 08) |
+| FR-17 | M | AC-14, AC-15 | `apps/api/src/junit/junit.test.ts`, `apps/api/test/report-processing.int.test.ts` |
 | FR-18 | M | AC-16 | |
 | FR-19 | M | AC-13 | |
 | FR-20 | C | AC-32 | |

@@ -103,17 +103,43 @@ describe('interpret', () => {
   });
 
   it('FR-15: a Playwright Report’s <error> test cases map to failed Outcomes with a message', () => {
-    const { cases } = interpret(fixture('playwright-normal-run-01.xml'));
+    // Reported with includeProjectInTestName (ADR-0005), so chromium and firefox get
+    // distinct names and neither collides (AC-15).
+    const { cases, collisions } = interpret(fixture('playwright-collision-fixed-run-01.xml'));
 
-    // Two projects (chromium, firefox) report every test case once each (design’s documented
-    // naive handling of collisions for this ticket; ticket 08 adds the warning).
-    expect(cases).toHaveLength(10);
-    const erroring = cases.filter((c) => c.classname === 'erroring.spec.ts');
-    expect(erroring).toHaveLength(2);
-    for (const c of erroring) {
-      expect(c.result).toBe('failed');
-      expect(c.failureMessage).toContain('malformed report: unexpected end of XML');
-    }
+    expect(collisions).toEqual([]);
+    expect(cases).toHaveLength(2);
+    const failing = cases.find((c) => c.name.includes('firefox'))!;
+    expect(failing.result).toBe('failed');
+    expect(failing.failureMessage).toContain('expect(received).toBe(expected)');
+  });
+
+  it('AC-14: a Playwright Report with two projects and no includeProjectInTestName collides; the colliding identity is excluded from cases and reported, mentioning includeProjectInTestName, even though one project passed and the other failed', () => {
+    const { cases, collisions } = interpret(fixture('playwright-collision-run-01.xml'));
+
+    expect(cases).toEqual([]);
+    expect(collisions).toEqual([
+      { classname: 'flaky.spec.ts', name: 'report ingestion › is sometimes flaky' },
+    ]);
+  });
+
+  it('AC-15: the same Playwright suite reported with includeProjectInTestName: true produces two distinct Tests and no collision', () => {
+    const { cases, collisions } = interpret(fixture('playwright-collision-fixed-run-01.xml'));
+
+    expect(collisions).toEqual([]);
+    expect(cases.map((c) => c.name).sort()).toEqual([
+      '[chromium] report ingestion › is sometimes flaky',
+      '[firefox] report ingestion › is sometimes flaky',
+    ]);
+  });
+
+  it('FR-17: jest-junit’s default classNameTemplate (no {filepath}) collides two same-named tests from different files, excluding both from cases', () => {
+    const { cases, collisions } = interpret(fixture('jest-collision-default-run-01.xml'));
+
+    expect(cases).toEqual([]);
+    expect(collisions).toEqual([
+      { classname: 'report ingestion is sometimes flaky', name: 'report ingestion is sometimes flaky' },
+    ]);
   });
 
   it('FR-16: a Vitest retry that fails on every attempt keeps only the first <failure>’s message', () => {
@@ -129,7 +155,28 @@ describe('interpret', () => {
   });
 
   it('FR-16: a Playwright retry’s single <error> element (text already covering every retry) is kept whole', () => {
-    const { cases } = interpret(fixture('playwright-retry-run-01.xml'));
+    // One project only: cross-project duplication is covered separately by AC-14/AC-15
+    // (ADR-0005); this fixture's chromium+firefox pair would otherwise collide and say
+    // nothing about retry handling.
+    const xml = `
+<testsuites>
+  <testsuite name="erroring.spec.ts" hostname="chromium">
+    <testcase name="report ingestion › throws while parsing a malformed report" classname="erroring.spec.ts">
+      <error message="malformed report: unexpected end of XML" type="Error">
+first attempt
+
+Retry #1 ───
+
+retry 1
+
+Retry #2 ───
+
+retry 2
+      </error>
+    </testcase>
+  </testsuite>
+</testsuites>`;
+    const { cases } = interpret(xml);
 
     const erroring = cases.find((c) => c.classname === 'erroring.spec.ts')!;
     expect(erroring.result).toBe('failed');

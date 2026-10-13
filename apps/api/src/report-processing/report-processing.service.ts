@@ -1,12 +1,26 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '../generated/prisma/client.js';
-import { interpret, type InterpretedTestCase } from '../junit/index.js';
+import { interpret, type CollidingIdentity, type InterpretedTestCase } from '../junit/index.js';
 import { PrismaService } from '../platform/index.js';
 import { ReportQueueService } from './report-queue.js';
 
 /** One Test's identity as reported (FR-14). Keyed with a separator that can't appear in either part. */
 function identityKeyOf(classname: string, name: string): string {
   return `${classname}\u0000${name}`;
+}
+
+/**
+ * The Report's Collision warning (FR-17, AC-14): the colliding identities plus both
+ * documented fixes (ADR-0005). Which reporter produced the file is never detected, so
+ * both options are always given.
+ */
+function collisionWarningOf(collisions: CollidingIdentity[]): Prisma.InputJsonValue | undefined {
+  if (collisions.length === 0) return undefined;
+  return {
+    identities: collisions,
+    message:
+      "These test cases share a classname + name with another case in this Report, so no Outcome was recorded for them. Make identities unique: for Playwright with multiple projects, set includeProjectInTestName: true; for jest-junit, set classNameTemplate to include {filepath}.",
+  } as unknown as Prisma.InputJsonValue;
 }
 
 /**
@@ -30,15 +44,15 @@ export class ReportProcessingService {
     const content = await this.prisma.reportContent.findUniqueOrThrow({
       where: { reportId: claimed.id },
     });
-    const { cases } = interpret(Buffer.from(content.body).toString('utf-8'));
+    const { cases, collisions } = interpret(Buffer.from(content.body).toString('utf-8'));
 
     await this.prisma.$transaction(async (tx) => {
       const testIdByIdentity = await upsertTests(tx, claimed.projectId, cases);
 
       if (cases.length > 0) {
         await tx.outcome.createMany({
-          skipDuplicates: true, // Collisions (FR-17, ticket 08): naive for now — the second
-          // test case sharing an identity in one Report silently records no Outcome.
+          skipDuplicates: true, // Idempotent re-processing of the same attempt (FR-18);
+          // colliding cases never reach here — `interpret` already excluded them (FR-17).
           data: cases.map((testCase) => ({
             reportId: claimed.id,
             testId: testIdByIdentity.get(identityKeyOf(testCase.classname, testCase.name))!,
@@ -51,7 +65,7 @@ export class ReportProcessingService {
         });
       }
 
-      await this.queue.complete(tx, claimed.id, now);
+      await this.queue.complete(tx, claimed.id, now, collisionWarningOf(collisions));
     });
 
     // One log line per Report state change (design §9): full observability (redaction,

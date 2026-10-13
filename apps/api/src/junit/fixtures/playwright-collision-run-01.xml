@@ -1,0 +1,19 @@
+<testsuites id="" name="" tests="2" failures="1" skipped="0" time="0.011" errors="0">
+<testsuite name="flaky.spec.ts" hostname="chromium" tests="1" failures="0" skipped="0" time="0.006" errors="0">
+<testcase name="report ingestion › is sometimes flaky" classname="flaky.spec.ts" time="0.006">
+</testcase>
+</testsuite>
+<testsuite name="flaky.spec.ts" hostname="firefox" tests="1" failures="1" skipped="0" time="0.005" errors="0">
+<testcase name="report ingestion › is sometimes flaky" classname="flaky.spec.ts" time="0.005">
+<failure message="expect(received).toBe(expected) // Object.is equality" type="expect.toBe">
+<![CDATA[  [firefox] › flaky.spec.ts:5:7 › report ingestion › is sometimes flaky ──────
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+]]>
+</failure>
+</testcase>
+</testsuite>
+</testsuites>

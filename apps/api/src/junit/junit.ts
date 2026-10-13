@@ -11,8 +11,15 @@ export interface InterpretedTestCase {
   failureMessage?: string;
 }
 
+/** A `classname` + `name` reported by more than one test case in the same Report (FR-17). */
+export interface CollidingIdentity {
+  classname: string;
+  name: string;
+}
+
 export interface InterpretedReport {
   cases: InterpretedTestCase[];
+  collisions: CollidingIdentity[];
 }
 
 // Predefined XML entities (&gt; etc.) must decode for identity to be "exactly as reported"
@@ -52,16 +59,39 @@ type RawFailure = string | { '@_message'?: string; '#text'?: string };
 /**
  * Raw JUnit XML → Tests' identity, Outcome and failure message (FR-14 … FR-16).
  * Pure, no I/O. `hostname` and every other attribute beyond classname/name are ignored
- * (FR-15, ADR-0005). Collisions (two test cases sharing classname+name in one Report) are
- * handled naively — both are returned as separate cases — until ticket 08 detects and
- * warns on them.
+ * (FR-15, ADR-0005). A Collision — two or more test cases sharing one classname+name in
+ * this Report — excludes every one of those cases from `cases`; its identity is reported
+ * in `collisions` instead (FR-17, ADR-0005: detected, not guessed from the reporter).
  */
 export function interpret(xml: string): InterpretedReport {
   const doc = parser.parse(xml) as RawDocument;
   const suites = doc.testsuites?.testsuite ?? doc.testsuite ?? [];
+  const rawCases = suites.flatMap((suite) => suite.testcase ?? []);
 
-  const cases = suites.flatMap((suite) => (suite.testcase ?? []).map(interpretTestCase));
-  return { cases };
+  const byIdentity = new Map<string, RawTestCase[]>();
+  for (const raw of rawCases) {
+    const key = identityKeyOf(raw['@_classname'], raw['@_name']);
+    const group = byIdentity.get(key);
+    if (group) group.push(raw);
+    else byIdentity.set(key, [raw]);
+  }
+
+  const cases: InterpretedTestCase[] = [];
+  const collisions: CollidingIdentity[] = [];
+  for (const group of byIdentity.values()) {
+    const [first] = group;
+    if (group.length > 1) {
+      collisions.push({ classname: first!['@_classname'], name: first!['@_name'] });
+    } else {
+      cases.push(interpretTestCase(first!));
+    }
+  }
+
+  return { cases, collisions };
+}
+
+function identityKeyOf(classname: string, name: string): string {
+  return `${classname}\u0000${name}`;
 }
 
 function interpretTestCase(testcase: RawTestCase): InterpretedTestCase {

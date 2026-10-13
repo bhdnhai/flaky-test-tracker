@@ -1,6 +1,6 @@
 # 08 — Collision detection and warning
 
-Status: ready-for-agent
+Status: resolved
 Priority: must
 Blocked by: 03
 
@@ -26,8 +26,8 @@ FR-17. ACs: AC-14, AC-15.
 
 ## Acceptance checks
 
-- [ ] **AC-14** (FR-17). **Given** a Playwright Report with two projects and no `includeProjectInTestName` (identical `classname`/`name` under `hostname="chromium"` and `hostname="firefox"`), where chromium passed and firefox failed, **when** it is processed, **then** the Report is `processed`, its Collision warning lists that identity and mentions `includeProjectInTestName`, and no Outcome (and so no Flake) is recorded for it.
-- [ ] **AC-15** (FR-17, FR-14). **Given** the same Playwright suite reported with `includeProjectInTestName: true`, **when** it is processed, **then** there are two distinct Tests, one per project, and no Collision warning.
+- [x] **AC-14** (FR-17). **Given** a Playwright Report with two projects and no `includeProjectInTestName` (identical `classname`/`name` under `hostname="chromium"` and `hostname="firefox"`), where chromium passed and firefox failed, **when** it is processed, **then** the Report is `processed`, its Collision warning lists that identity and mentions `includeProjectInTestName`, and no Outcome (and so no Flake) is recorded for it.
+- [x] **AC-15** (FR-17, FR-14). **Given** the same Playwright suite reported with `includeProjectInTestName: true`, **when** it is processed, **then** there are two distinct Tests, one per project, and no Collision warning.
 
 **How to verify by hand:**
 
@@ -46,11 +46,13 @@ FR-17. ACs: AC-14, AC-15.
 
 ## Definition of done
 
-- [ ] Every AC listed above has a passing test at the level named under "Tests expected", with the AC ID in the test name.
-- [ ] `npm run lint`, `npm run typecheck`, unit and integration tests are green; E2E is green if this ticket touches the dashboard or the demo.
-- [ ] `docs/02-srs.md` traceability matrix: test file(s) filled in for the ACs above.
-- [ ] If implementation proved the SRS or design wrong or incomplete: `docs/02-srs.md` and/or `docs/03-design.md` updated, a line added to the SRS document history, and the discovery written under `## Comments` below.
-- [ ] README updated if setup, run or test commands changed.
-- [ ] One focused commit, Conventional Commits format, referencing this ticket (e.g. `feat(intake): … (#NN)`).
+- [x] Every AC listed above has a passing test at the level named under "Tests expected", with the AC ID in the test name.
+- [x] `npm run lint`, `npm run typecheck`, unit and integration tests are green; E2E is green if this ticket touches the dashboard or the demo.
+- [x] `docs/02-srs.md` traceability matrix: test file(s) filled in for the ACs above.
+- [ ] If implementation proved the SRS or design wrong or incomplete: `docs/02-srs.md` and/or `docs/03-design.md` updated, a line added to the SRS document history, and the discovery written under `## Comments` below. (N/A — nothing about the SRS or design was wrong; see Comments for a fixture-level deviation only.)
+- [x] README updated if setup, run or test commands changed. (N/A — no command changed.)
+- [x] One focused commit, Conventional Commits format, referencing this ticket (e.g. `feat(intake): … (#NN)`).
 
 ## Comments
+
+Built: `interpret` groups cases by classname+name and excludes any identity reported more than once in a Report into `collisions`; processing stores a JSON Collision warning (identities + both fix options, since detecting the reporter is rejected by ADR-0005) and records no Test/Outcome for those identities. Deviation: the pre-existing `playwright-normal-run-01.xml`/`playwright-retry-run-01.xml` fixtures (2 projects, no `includeProjectInTestName`) are now full-Report collisions under the correct rule, so the two unit tests that used them for unrelated assertions (FR-15 error-message mapping, FR-16 retry-message selection) were switched to a single-project snippet / the new `playwright-collision-fixed-run-01.xml`. Follow-up (out of scope): the Reports page already shows Yes/No for `collisionWarning` (ticket 03); rendering the identities/fix text is ticket 11's page audit.

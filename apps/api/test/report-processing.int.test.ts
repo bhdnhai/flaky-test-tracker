@@ -100,7 +100,7 @@ describe('ReportProcessingService (via the Nest application context)', () => {
     expect(didWork).toBe(false);
   });
 
-  it('FR-17: a Playwright Report with two projects reporting the same identity (a Collision, naive for this ticket) keeps processing without crashing', async () => {
+  it('AC-14: a Playwright Report with two projects and no includeProjectInTestName (chromium passed, firefox failed on the same identity) is processed with a Collision warning mentioning includeProjectInTestName, no Test and no Outcome for that identity', async () => {
     const twoProjectReport = `
 <testsuites>
   <testsuite name="spec" hostname="chromium">
@@ -125,11 +125,47 @@ describe('ReportProcessingService (via the Nest application context)', () => {
 
     const report = await prisma.report.findUniqueOrThrow({ where: { id: submitted.id } });
     expect(report.processingState).toBe('processed');
-    // Naive collision handling (ticket 08 adds the warning): one Test, one Outcome —
-    // the second test case's insert is silently skipped by the unique (report_id, test_id).
+    expect(report.collisionWarning).toMatchObject({
+      identities: [{ classname: 'spec.ts', name: 't' }],
+    });
+    expect(JSON.stringify(report.collisionWarning)).toContain('includeProjectInTestName');
+
     const tests = await prisma.test.findMany({ where: { projectId: project.id } });
-    expect(tests).toHaveLength(1);
+    expect(tests).toHaveLength(0);
     const outcomes = await prisma.outcome.findMany({ where: { reportId: submitted.id } });
-    expect(outcomes).toHaveLength(1);
+    expect(outcomes).toHaveLength(0);
+  });
+
+  it('AC-15: the same Playwright suite reported with includeProjectInTestName: true produces two distinct Tests and no Collision warning', async () => {
+    const twoProjectReportFixed = `
+<testsuites>
+  <testsuite name="spec" hostname="chromium">
+    <testcase classname="spec.ts" name="[chromium] t" />
+  </testsuite>
+  <testsuite name="spec" hostname="firefox">
+    <testcase classname="spec.ts" name="[firefox] t">
+      <failure message="failed on firefox">boom</failure>
+    </testcase>
+  </testsuite>
+</testsuites>`;
+    const { projects, reportIntake, processing, prisma } = await createContext();
+    const { project } = await projects.create('web-app');
+    const { report: submitted } = await reportIntake.submit({
+      project,
+      commitSha: SOME_COMMIT,
+      metadata: {},
+      body: Buffer.from(twoProjectReportFixed),
+    });
+
+    await processing.processNext(new Date());
+
+    const report = await prisma.report.findUniqueOrThrow({ where: { id: submitted.id } });
+    expect(report.processingState).toBe('processed');
+    expect(report.collisionWarning).toBeNull();
+
+    const tests = await prisma.test.findMany({ where: { projectId: project.id } });
+    expect(tests).toHaveLength(2);
+    const outcomes = await prisma.outcome.findMany({ where: { reportId: submitted.id } });
+    expect(outcomes).toHaveLength(2);
   });
 });
