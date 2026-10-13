@@ -2,7 +2,7 @@
 
 Collects JUnit test results from CI across many runs and identifies tests that pass and fail on the same Commit, so a team can tell flakiness apart from real breakage.
 
-> Status: iteration 1 in progress. An Operator can create a Project and CI can submit a Report to it (see [`.scratch/iteration-1/`](.scratch/iteration-1/README.md) for what's landed ticket by ticket).
+> Status: iteration 1 in progress. An Operator can create a Project, CI can submit a Report, and the worker processes it into Tests and Outcomes (see [`.scratch/iteration-1/`](.scratch/iteration-1/README.md) for what's landed ticket by ticket).
 
 ## Quick start
 
@@ -13,7 +13,7 @@ docker compose up -d --build
 open http://localhost:8080        # the header shows "API: ok"
 ```
 
-`docker compose up` starts `db` (PostgreSQL 18), runs the one-shot `migrate` service (`prisma migrate deploy`), then starts `api` (NestJS) and `web` (nginx serving the dashboard and proxying `/api` and `/health` to the API) on port 8080.
+`docker compose up` starts `db` (PostgreSQL 18), runs the one-shot `migrate` service (`prisma migrate deploy`), then starts `api` (NestJS), `worker` (the same image, processing `pending` Reports every 500 ms) and `web` (nginx serving the dashboard and proxying `/api` and `/health` to the API) on port 8080.
 
 ```sh
 curl -i localhost:8080/health     # 200 {"status":"ok"}; 503 with the error envelope if the database is down
@@ -42,7 +42,7 @@ curl -X POST "localhost:8080/api/v1/reports?commit=$(git rev-parse HEAD)" \
 # 202 {"id":"...","processingState":"pending","duplicate":false}
 ```
 
-Open the dashboard: Projects → `web-app` → Reports shows the submitted Report (`pending` until ticket 03 adds processing).
+Open the dashboard: Projects → `web-app` → Reports shows the submitted Report, moving from `pending` to `processed` within a second as the worker picks it up.
 
 ## Development
 

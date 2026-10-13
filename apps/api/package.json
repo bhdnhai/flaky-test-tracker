@@ -9,7 +9,7 @@
     "start:dev": "nest start --watch",
     "prisma:generate": "prisma generate",
     "typecheck": "prisma generate && tsc --noEmit",
-    "test:unit": "vitest run --project unit",
+    "test:unit": "vitest run --project unit --coverage",
     "test:integration": "prisma generate && vitest run --project integration"
   },
   "dependencies": {
@@ -20,6 +20,7 @@
     "@prisma/adapter-pg": "~7.10.0",
     "@prisma/client": "~7.10.0",
     "express": "^5.2.1",
+    "fast-xml-parser": "^5.11.2",
     "prisma": "~7.10.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
@@ -33,6 +34,7 @@
     "@types/node": "^22.15.0",
     "@types/pg": "^8.23.1",
     "@types/supertest": "^6.0.3",
+    "@vitest/coverage-v8": "5.0.4",
     "pg": "^8.23.1",
     "supertest": "^7.3.1",
     "typescript": "~6.0.3",

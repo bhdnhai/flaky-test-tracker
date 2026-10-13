@@ -1,6 +1,6 @@
 # 03 — Worker processes Reports into Tests and Outcomes
 
-Status: ready-for-agent
+Status: resolved
 Priority: must
 Blocked by: 02
 
@@ -32,9 +32,9 @@ FR-13, FR-14, FR-15, FR-16; NFR-12 (coverage gate on the JUnit module). ACs: AC-
 
 ## Acceptance checks
 
-- [ ] **AC-11** (FR-14, FR-15, FR-16). **Given** a Vitest Report with one passing, one `<failure>`, one `<error>` and one `<skipped>` test case, **when** it is processed, **then** 4 Tests exist with `classname`/`name` exactly as in the XML, their Outcomes are passed, failed, failed and skipped, and both failed Outcomes have a failure message.
-- [ ] **AC-12** (FR-16). **Given** a `<failure>` whose combined message is 20 KB of multi-byte UTF-8, **when** it is processed, **then** the stored failure message is ≤ 8 KB and is valid UTF-8.
-- [ ] **AC-39** (NFR-12). CI runs lint and typecheck with 0 errors, and the coverage report for the JUnit interpretation module is ≥ 90% lines.
+- [x] **AC-11** (FR-14, FR-15, FR-16). **Given** a Vitest Report with one passing, one `<failure>`, one `<error>` and one `<skipped>` test case, **when** it is processed, **then** 4 Tests exist with `classname`/`name` exactly as in the XML, their Outcomes are passed, failed, failed and skipped, and both failed Outcomes have a failure message.
+- [x] **AC-12** (FR-16). **Given** a `<failure>` whose combined message is 20 KB of multi-byte UTF-8, **when** it is processed, **then** the stored failure message is ≤ 8 KB and is valid UTF-8.
+- [x] **AC-39** (NFR-12). CI runs lint and typecheck with 0 errors, and the coverage report for the JUnit interpretation module is ≥ 90% lines.
 
 **How to verify by hand:**
 
@@ -55,11 +55,33 @@ FR-13, FR-14, FR-15, FR-16; NFR-12 (coverage gate on the JUnit module). ACs: AC-
 
 ## Definition of done
 
-- [ ] Every AC listed above has a passing test at the level named under "Tests expected", with the AC ID in the test name.
-- [ ] `npm run lint`, `npm run typecheck`, unit and integration tests are green; E2E is green if this ticket touches the dashboard or the demo.
-- [ ] `docs/02-srs.md` traceability matrix: test file(s) filled in for the ACs above.
-- [ ] If implementation proved the SRS or design wrong or incomplete: `docs/02-srs.md` and/or `docs/03-design.md` updated, a line added to the SRS document history, and the discovery written under `## Comments` below.
-- [ ] README updated if setup, run or test commands changed.
-- [ ] One focused commit, Conventional Commits format, referencing this ticket (e.g. `feat(intake): … (#NN)`).
+- [x] Every AC listed above has a passing test at the level named under "Tests expected", with the AC ID in the test name.
+- [x] `npm run lint`, `npm run typecheck`, unit and integration tests are green; E2E is green if this ticket touches the dashboard or the demo.
+- [x] `docs/02-srs.md` traceability matrix: test file(s) filled in for the ACs above.
+- [x] If implementation proved the SRS or design wrong or incomplete: `docs/02-srs.md` and/or `docs/03-design.md` updated, a line added to the SRS document history, and the discovery written under `## Comments` below.
+- [x] README updated if setup, run or test commands changed.
+- [x] One focused commit, Conventional Commits format, referencing this ticket (e.g. `feat(intake): … (#NN)`).
 
 ## Comments
+
+
+### 2026-10-13: resolved
+
+**Built**
+- **JUnit** module (`apps/api/src/junit/`, pure, no Nest/I/O): `interpret(xml)` → test cases with `classname`/`name` exactly as reported, `result` (passed/failed/skipped), and a failure message (message attribute + text of the first `<failure>`/`<error>`, truncated to ≤ 8 KB on a UTF-8 boundary). `hostname` ignored. Unit fixtures copied from `prototype/reporter-output-and-flakiness`'s real Vitest/Playwright/jest-junit samples (normal and retry runs).
+- **ReportQueue** (`report-processing/report-queue.ts`): `claimNext(now)` via one atomic `UPDATE … WHERE id = (SELECT … FOR UPDATE SKIP LOCKED) RETURNING`; `complete(tx, id, now)` inside the processing transaction. Happy path only, as scoped.
+- **ReportProcessing**: `processNext(now)` — claim → load `report_content` → `interpret` → one transaction (`test.createMany({skipDuplicates})` + a lookup select, `outcome.createMany({skipDuplicates})`, `queue.complete`) → a JSON state-change log line (`reportId`, `from`, `to`, `attempt`, `durationMs`).
+- `worker` entry point (`src/worker.ts`, polls every 500 ms) and its `docker compose` service (same image, `node dist/worker.js`).
+- Migration `add_test_outcome_tables`: `test`, `outcome` (with `project_id`/`commit_sha`/`received_at` copied from the Report), plus the design §6 `INCLUDE` index (hand-added to the generated SQL — Prisma's schema syntax has no `INCLUDE` clause).
+- Coverage gate: `apps/api/vitest.config.ts` thresholds (90% lines on `src/junit/**`), enforced by `npm run test:unit`'s `--coverage` flag — lands in the CI `unit` job per design §11.
+- Tests: unit (`junit.test.ts`, 8 cases incl. AC-11/AC-12 plus every prototype fixture — 100% line coverage), integration (`report-processing.int.test.ts`: AC-11 end to end, "no pending Report" and the naive-collision case).
+
+**Discoveries — design corrected (SRS v1.4, design §7).**
+1. `fast-xml-parser`'s `processEntities: false` (as design §7 specified) turned out to be all-or-nothing: it also disables the five *predefined* XML entities (`&gt;`, `&amp;`, …), not just custom/DOCTYPE ones. Vitest's `name` attribute uses `&gt;` for its `" > "` describe separator, so this would have stored names that don't match "exactly as reported" (FR-14, AC-11) — found because the Vitest fixture's real sample name literally contains `&gt;`. Left entities enabled: the library's entity decoder already caps expansion size/depth and screens custom entity values regardless of the toggle, so NFR-07's actual concern (DOCTYPE/XXE, which ticket 07 rejects before parsing) is unaffected.
+2. A Report whose root is a single bare `<testsuite>` (no `<testsuites>` wrapper) silently produced zero Tests/Outcomes while the Report still went to `processed` — found by processing a batch of already-stored Reports on the dev stack left over from earlier manual testing, which used exactly this shape (`apps/api/test/support/junit-fixtures.ts`'s `SAMPLE_JUNIT_XML`, written for ticket 02). `interpret` now accepts both shapes.
+
+**Deliberate gaps (named in scope, not fixed here):** Collisions are handled naively — `outcome.createMany({ skipDuplicates: true })` silently drops the second test case sharing an identity in one Report, with no warning (ticket 08). No retry/back-off/`failed`/claim-expiry (ticket 09): a Report that crashes mid-processing stays `processing` forever until then.
+
+**Out-of-scope follow-ups found (for the Operator to decide on new tickets):**
+- A `<testcase>` with *both* multiple sibling `<failure>` elements and a mix of `<failure>`/`<error>` tag names isn't exercised; real reporters never mix the two tags, so this was left untested rather than guarded.
+- Worth a note in the CI-setup docs (ticket 13) that both JUnit root shapes (`<testsuites>` wrapper and bare `<testsuite>`) are accepted.

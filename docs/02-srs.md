@@ -496,11 +496,11 @@ The test file column is filled in during implementation.
 | FR-10 | M | AC-09 | |
 | FR-11 | M | AC-04 | `apps/api/test/report-intake.int.test.ts` |
 | FR-12 | M | AC-10 | |
-| FR-13 | M | AC-04, AC-18 | `apps/api/test/report-intake.int.test.ts` (AC-04 part; AC-18 comes with ticket 09) |
-| FR-14 | M | AC-11, AC-15 | |
-| FR-15 | M | AC-11 | |
-| FR-16 | M | AC-11, AC-12 | |
-| FR-17 | M | AC-14, AC-15 | |
+| FR-13 | M | AC-04, AC-18 | `apps/api/test/report-intake.int.test.ts` (AC-04 part), `apps/api/test/report-processing.int.test.ts` (background processing part; AC-18 comes with ticket 09) |
+| FR-14 | M | AC-11, AC-15 | `apps/api/src/junit/junit.test.ts`, `apps/api/test/report-processing.int.test.ts` (AC-15's Playwright-project part comes with ticket 08) |
+| FR-15 | M | AC-11 | `apps/api/src/junit/junit.test.ts`, `apps/api/test/report-processing.int.test.ts` |
+| FR-16 | M | AC-11, AC-12 | `apps/api/src/junit/junit.test.ts` |
+| FR-17 | M | AC-14, AC-15 | `apps/api/test/report-processing.int.test.ts` (naive handling only — no warning yet; AC-14/15 land with ticket 08) |
 | FR-18 | M | AC-16 | |
 | FR-19 | M | AC-13 | |
 | FR-20 | C | AC-32 | |
@@ -530,7 +530,7 @@ The test file column is filled in during implementation.
 | NFR-09 | | AC-37 | |
 | NFR-10 | | AC-38 | |
 | NFR-11 | | AC-38 | `apps/api/test/health.int.test.ts` (health `200`/`503`; the `X-Request-Id` part comes with ticket 10) |
-| NFR-12 | | AC-39 | `.github/workflows/ci.yml` job `lint-typecheck` (lint and typecheck; the coverage gate comes with ticket 03) |
+| NFR-12 | | AC-39 | `.github/workflows/ci.yml` jobs `lint-typecheck` (lint and typecheck) and `unit` (coverage gate: `apps/api/vitest.config.ts` thresholds on `apps/api/src/junit/**`, enforced by `npm run test:unit`, design §11) |
 | NFR-13 | | AC-28 | `apps/web/e2e/smoke.spec.ts` (the Compose stack starts and the dashboard reaches the API; the demo part of AC-28 comes with ticket 06) |
 | NFR-14 | | AC-23 | |
 
@@ -563,3 +563,4 @@ Problems found and fixed while drafting:
 | 1.1 | 2026-10-13 | (1) An expired claim counts as an attempt: after the 3rd, the Report becomes `failed` instead of returning to `pending` (§8). (2) NFR-12 / AC-39 coverage target narrowed to the JUnit interpretation module; Flake detection is covered by integration tests. | Found during design: (1) without it, a Report that crashes the worker every time would loop forever; (2) the design computes Flakes in SQL (design §6), which unit-test coverage can't measure, while integration tests against real PostgreSQL can |
 | 1.2 | 2026-10-13 | No requirement changed. Design corrected (design §2, §4, §8, §10): Node ≥ 22.22; deep-import lint via `eslint-plugin-import-x`; the test-naming rule allows a requirement or ADR ID when no AC covers the test; the web client's unit tests may stub `fetch`; nginx also proxies `/health`; `db` is published on host port 5433. Traceability matrix: first test files for NFR-11, NFR-12, NFR-13. | Found while implementing ticket 01: React Router 8.4 and Testcontainers 12.2 require Node ≥ 22.22, not the ≥ 22.12 the design assumed; `eslint-plugin-import` has no ESLint 10 support; ticket 01 itself asks for tests that no AC covers (the `500` mapping); a native PostgreSQL on the host shadowed port 5432 |
 | 1.3 | 2026-10-13 | No requirement changed. Design corrected (design §4): ReportIntake's documented interface now includes `listForProject`/`findOne`, and the module diagram gets a `readapi --> intake` edge, naming it as the Report table's read owner. Traceability matrix: test files for FR-01 … FR-08, FR-11, FR-13 (partial), FR-26, FR-30, NFR-06. | Found while implementing ticket 02: the design never named which module owns Report *reads* for ReadApi (only ReportQueue, arriving in ticket 03, was given Report-table methods), so the first implementation had `ReadApi` query `PrismaService` directly — a documented-standard violation caught by code review. Reusing `ReportIntake`, which already owns the table's writes, closes the gap without inventing a new module ticket 02 doesn't need. |
+| 1.4 | 2026-10-13 | No requirement changed. Design corrected (design §7): predefined XML entities (`&gt;` etc.) are decoded, not disabled via `processEntities: false` as design §7 said. Traceability matrix: test files for FR-13 … FR-17, NFR-12. | Found while implementing ticket 03: `processEntities: false` is all-or-nothing in fast-xml-parser and would have left Vitest's `&gt;`-escaped `name` attributes undecoded, breaking "identity exactly as reported" (FR-14, AC-11) — the library's entity decoder already caps expansion size/depth and screens custom entity values regardless of the toggle, so NFR-07's actual XXE concern (DOCTYPE, external entities) is unaffected. Also found: a Report whose root is a bare `<testsuite>` (no `<testsuites>` wrapper) — a shape already used by this repo's own `SAMPLE_JUNIT_XML` test fixture — silently produced zero Tests/Outcomes while the Report still reported `processed`; `interpret` now accepts both shapes. |

@@ -5,6 +5,13 @@ export default defineConfig({
   // Resolve @ftt/contracts to its TypeScript source instead of its build output.
   ssr: { resolve: { conditions: ['source', ...defaultServerConditions] } },
   test: {
+    // NFR-12 / AC-39: the JUnit interpretation module needs >= 90% line coverage.
+    coverage: {
+      provider: 'v8',
+      include: ['src/junit/**/*.ts'],
+      exclude: ['src/junit/**/*.test.ts'],
+      thresholds: { lines: 90 },
+    },
     projects: [
       {
         extends: true,

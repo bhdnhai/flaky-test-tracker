@@ -52,6 +52,18 @@ services:
       retries: 12
     restart: unless-stopped
 
+  worker:
+    <<: *api-image
+    command: ['node', 'dist/worker.js']
+    environment:
+      DATABASE_URL: *database-url
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
   web:
     build:
       context: .
