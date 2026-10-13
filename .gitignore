@@ -42,3 +42,6 @@ Thumbs.db
 *.swo
 
 # Note: .scratch/ is intentionally tracked (requirements and ticket history).
+
+# Generated Prisma client
+apps/api/src/generated/

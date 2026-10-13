@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Version | 1.1 (see [Document history](#18-document-history)) |
+| Version | 1.2 (see [Document history](#18-document-history)) |
 | Status | Baseline for implementation |
 | Problem definition | [docs/01-problem-definition.md](01-problem-definition.md) |
 | Glossary | [CONTEXT.md](../CONTEXT.md) |
@@ -529,9 +529,9 @@ The test file column is filled in during implementation.
 | NFR-08 | | AC-27 | |
 | NFR-09 | | AC-37 | |
 | NFR-10 | | AC-38 | |
-| NFR-11 | | AC-38 | |
-| NFR-12 | | AC-39 | |
-| NFR-13 | | AC-28 | |
+| NFR-11 | | AC-38 | `apps/api/test/health.int.test.ts` (health `200`/`503`; the `X-Request-Id` part comes with ticket 10) |
+| NFR-12 | | AC-39 | `.github/workflows/ci.yml` job `lint-typecheck` (lint and typecheck; the coverage gate comes with ticket 03) |
+| NFR-13 | | AC-28 | `apps/web/e2e/smoke.spec.ts` (the Compose stack starts and the dashboard reaches the API; the demo part of AC-28 comes with ticket 06) |
 | NFR-14 | | AC-23 | |
 
 ## 17. Consistency review (v1.0)
@@ -561,3 +561,4 @@ Problems found and fixed while drafting:
 |---|---|---|---|
 | 1.0 | 2026-10-13 | Initial baseline for iteration 1 | Derived from the problem definition, ADR-0001 … 0005 and the reporter-output prototype |
 | 1.1 | 2026-10-13 | (1) An expired claim counts as an attempt: after the 3rd, the Report becomes `failed` instead of returning to `pending` (§8). (2) NFR-12 / AC-39 coverage target narrowed to the JUnit interpretation module; Flake detection is covered by integration tests. | Found during design: (1) without it, a Report that crashes the worker every time would loop forever; (2) the design computes Flakes in SQL (design §6), which unit-test coverage can't measure, while integration tests against real PostgreSQL can |
+| 1.2 | 2026-10-13 | No requirement changed. Design corrected (design §2, §4, §8, §10): Node ≥ 22.22; deep-import lint via `eslint-plugin-import-x`; the test-naming rule allows a requirement or ADR ID when no AC covers the test; the web client's unit tests may stub `fetch`; nginx also proxies `/health`; `db` is published on host port 5433. Traceability matrix: first test files for NFR-11, NFR-12, NFR-13. | Found while implementing ticket 01: React Router 8.4 and Testcontainers 12.2 require Node ≥ 22.22, not the ≥ 22.12 the design assumed; `eslint-plugin-import` has no ESLint 10 support; ticket 01 itself asks for tests that no AC covers (the `500` mapping); a native PostgreSQL on the host shadowed port 5432 |

@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Implements | [SRS v1.1](02-srs.md) |
+| Implements | [SRS v1.2](02-srs.md) |
 | Glossary | [CONTEXT.md](../CONTEXT.md) |
 | Decisions | [ADR-0001 … ADR-0013](adr/) |
 
@@ -35,7 +35,7 @@ flowchart LR
 ```mermaid
 flowchart TB
     subgraph host["docker compose"]
-        web["web<br/>nginx: Vite build of the React dashboard<br/>+ reverse proxy /api → api"]
+        web["web<br/>nginx: Vite build of the React dashboard<br/>+ reverse proxy /api and /health → api"]
         api["api<br/>NestJS HTTP (Node 22)<br/>submission + read API"]
         worker["worker<br/>NestJS, same image, processing loop"]
         cli["cli<br/>NestJS, same image, run on demand<br/>via docker compose exec"]
@@ -60,7 +60,7 @@ Versions are pinned to the current stable releases as of 2026-10-13. Compatibili
 
 | Layer | Choice | Version | Why | Alternative considered |
 |---|---|---|---|---|
-| Runtime | Node.js LTS | 22.x (`.nvmrc`, `node:22-alpine`) | Meets every package's minimum (Prisma needs ≥ 22.12); supported until 2027-04; what reviewers most likely have | Node 24 LTS: newer, but forces most reviewers to upgrade first |
+| Runtime | Node.js LTS | 22.x, **≥ 22.22** (`.nvmrc` 22.23.3, `node:22.23-alpine`) | Meets every package's minimum: React Router 8.4 and Testcontainers 12.2 need ≥ 22.22 (Prisma alone needs ≥ 22.12); supported until 2027-04; what reviewers most likely have | Node 24 LTS: newer, but forces most reviewers to upgrade first |
 | Language | TypeScript | **6.0.x** | `@nestjs/cli` 12 depends on `typescript ~6.0` | TS 7.0 (the native Go port) is "latest" but not yet what the Nest toolchain uses |
 | Backend framework | NestJS | 12.1 | Company stack; modules and dependency injection map onto our module boundaries; a standalone context gives us the worker and CLI from the same modules | Fastify without Nest: less structure for three entry points |
 | ORM / migrations | Prisma + `@prisma/adapter-pg` | **7.10.x** (pinned; `prisma@latest` is an 8.0 RC) | [ADR-0008](adr/0008-prisma-orm-with-raw-sql-for-hot-queries.md) | TypeORM 1.1 |
@@ -124,7 +124,7 @@ Versions are pinned to the current stable releases as of 2026-10-13. Compatibili
 
 ## 4. Modules and their seams
 
-The rule for every module: callers (and tests) use only its interface. Modules talk to each other only through those interfaces (the Nest module's exports). An `index.ts` re-exports the public surface, and lint forbids deep imports into another module's folder.
+The rule for every module: callers (and tests) use only its interface. Modules talk to each other only through those interfaces (the Nest module's exports). An `index.ts` re-exports the public surface, and lint forbids deep imports into another module's folder (`import-x/no-restricted-paths`, with one zone per folder under `apps/api/src` derived in `eslint.config.js`, so new modules are covered automatically). The rule uses `eslint-plugin-import-x`, because `eslint-plugin-import` doesn't support ESLint 10.
 
 ```mermaid
 flowchart LR
@@ -251,9 +251,9 @@ The pyramid for *this* app is weighted towards the **API seam against real Postg
 | **Review checklist** | Code review | Fixture suite free of seeds or counters | AC-29 |
 
 Rules:
-- Test names start with the AC ID (`it("AC-19: …")`), so the SRS traceability matrix can point at real files.
+- Test names start with the AC ID (`it("AC-19: …")`), so the SRS traceability matrix can point at real files. A test that no AC covers (for example the envelope filter's `500` mapping, or the web client's response parsing) starts with the most specific requirement or decision it checks instead: an FR/NFR ID, an SRS section (`SRS §9.1`) or an ADR.
 - Tests assert observable behaviour: status codes, response bodies, list contents, page text. They never check which internal method was called.
-- No mocks of our own modules. The only replaced dependencies are **time** (a test clock) and, in E2E, nothing at all.
+- No mocks of our own modules. The only replaced dependencies are **time** (a test clock), the browser's **`fetch`** in the web client's unit tests (the network boundary of `shared/api`), and, in E2E, nothing at all.
 
 **Definition of done for a ticket:**
 1. The ticket's ACs have passing tests at the levels named above, named with their AC IDs.
@@ -288,6 +288,7 @@ open http://localhost:8080
   2. runs the fixture suite 10 times in the `demo` Compose service (profile `demo`, an image built from `fixtures/flaky-suite` on `node:22-alpine`, with its dependencies installed at build time). The prototype showed the race keeps its ~50% rate under Docker and `--cpus=0.5`.
   3. submits each JUnit file to `http://web/api/v1/reports` on the Compose network, with `commit=$(git rev-parse HEAD)` passed in from the host. This is the same request the composite action makes.
   4. polls each Report's status, then prints the dashboard URL.
+- `web` publishes port 8080 and proxies `/api/` and `/health` to `api` (the health check is outside `/api/v1`, SRS §9.2). `db` is published on host port **5433** (`DB_PORT`) only for running the API outside Docker; 5433 avoids clashing with a PostgreSQL already installed on the host.
 - Supported on macOS and Linux (bash). Windows reviewers use WSL; this is documented as a limitation.
 
 ### Production sketch (NOT built in iteration 1)
