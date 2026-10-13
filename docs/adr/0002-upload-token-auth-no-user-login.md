@@ -22,3 +22,7 @@ CI authenticates each Report submission with an **Upload Token** that is bound t
 - Anyone on the internal network can read test names and failure output. This is acceptable only under the internal-network assumption, which is recorded in the problem definition.
 - Adding OIDC later only affects the dashboard. The CI token path stays unchanged, because machines would still use Upload Tokens or client credentials.
 - RBAC is a non-goal until there is an action that some people may do and others may not (for example quarantining a Test or managing Projects).
+
+## Addendum (2026-10-13): reachability from GitHub-hosted runners
+
+GitHub-hosted runners run on the public internet and can't reach an internal-only deployment. The production deployment therefore exposes **only `POST /api/v1/reports`** publicly, through a load balancer path rule with a rate limit. The dashboard and the read API stay internal. The public route accepts only token-authenticated Reports and returns no data, so the no-login dashboard remains behind the network boundary. Organisations that use only self-hosted runners can keep everything internal. Iteration 1 runs locally and builds neither variant (see `docs/03-design.md` §10).

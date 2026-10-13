@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Version | 1.0 (see [Document history](#18-document-history)) |
+| Version | 1.1 (see [Document history](#18-document-history)) |
 | Status | Baseline for implementation |
 | Problem definition | [docs/01-problem-definition.md](01-problem-definition.md) |
 | Glossary | [CONTEXT.md](../CONTEXT.md) |
@@ -191,7 +191,7 @@ Listed so they aren't mistaken for omissions: user login or RBAC; managing Proje
 | NFR-09 | Accessibility | Every dashboard page has **0** serious or critical axe-core violations and can be fully used by keyboard (search, links, navigation). |
 | NFR-10 | Observability | Logs are structured JSON. Each HTTP log line carries a request ID, also returned as the `X-Request-Id` header. Each processing state change logs one line with the Report ID and the new state. |
 | NFR-11 | Observability | `GET /health` returns `200` when the database is reachable and `503` otherwise. |
-| NFR-12 | Maintainability | Lint and typecheck pass with 0 errors. The parsing and Flake-detection domain logic has ≥ **90%** line coverage from unit tests. |
+| NFR-12 | Maintainability | Lint and typecheck pass with 0 errors. The JUnit interpretation module (parsing, Outcome mapping, Collisions, truncation) has ≥ **90%** line coverage from unit tests. Flake detection runs as SQL and is covered by integration tests against real PostgreSQL (AC-19 … AC-22). |
 | NFR-13 | Portability | From a fresh clone, with only Docker and Node installed and no cloud accounts or paid services, `docker compose up`, `npm run demo` and opening the printed URL show populated results in ≤ **5 minutes** (excluding image download time on first run). |
 | NFR-14 | Usability | From a Project's Flaky Tests page, an Engineer reaches a Test's verdict in ≤ **2 clicks** after typing its name (search result → Test detail). |
 
@@ -266,7 +266,8 @@ stateDiagram-v2
     pending --> processing: worker claims it
     processing --> processed: parsed (with or without Collision warning)
     processing --> pending: attempt failed and attempts < 3 (FR-19)
-    processing --> pending: claim older than 60 s, worker presumed dead (NFR-04)
+    processing --> pending: claim older than 60 s and attempts < 3 (NFR-04)
+    processing --> failed: claim older than 60 s and attempts = 3
     processing --> failed: attempt failed and attempts = 3 (FR-19)
     processed --> pending: reprocess-report (FR-20, Could)
     failed --> pending: reprocess-report (FR-20, Could)
@@ -276,7 +277,7 @@ stateDiagram-v2
 |---|---|---|---|---|
 | (new) | ✅ on acceptance | ❌ | ❌ | ❌ |
 | pending | n/a | ✅ claim | ❌ must be processed first | ❌ must be processed first |
-| processing | ✅ retry or expired claim | n/a | ✅ | ✅ after the 3rd attempt |
+| processing | ✅ retry or expired claim (attempts < 3) | n/a | ✅ | ✅ after the 3rd attempt, failed or expired |
 | processed | ✅ reprocess only | ❌ | n/a | ❌ |
 | failed | ✅ reprocess only | ❌ | ❌ | n/a |
 
@@ -475,7 +476,7 @@ Unless stated otherwise: a Project `web-app` exists with a valid token, and "a R
 - **AC-36** (NFR-03, A10). With 10,000 Tests and 200,000 Outcomes seeded in one Project, p95 for the Flaky Tests list, Test search and Test detail is < 500 ms over 100 requests each.
 - **AC-37** (NFR-09). axe-core run by Playwright on the Projects, Flaky Tests, Test detail and Reports pages reports 0 serious or critical violations. The core workflow of AC-23 can be completed with the keyboard only.
 - **AC-38** (NFR-10, NFR-11). Every HTTP response has an `X-Request-Id` header that matches a JSON log line. `GET /health` returns `200` with the database up and `503` with it stopped.
-- **AC-39** (NFR-12). CI runs lint and typecheck with 0 errors, and the coverage report for the parsing and Flake-detection domain logic is ≥ 90% lines.
+- **AC-39** (NFR-12). CI runs lint and typecheck with 0 errors, and the coverage report for the JUnit interpretation module is ≥ 90% lines.
 
 ## 16. Traceability matrix
 
@@ -559,3 +560,4 @@ Problems found and fixed while drafting:
 | Version | Date | Change | Reason |
 |---|---|---|---|
 | 1.0 | 2026-10-13 | Initial baseline for iteration 1 | Derived from the problem definition, ADR-0001 … 0005 and the reporter-output prototype |
+| 1.1 | 2026-10-13 | (1) An expired claim counts as an attempt: after the 3rd, the Report becomes `failed` instead of returning to `pending` (§8). (2) NFR-12 / AC-39 coverage target narrowed to the JUnit interpretation module; Flake detection is covered by integration tests. | Found during design: (1) without it, a Report that crashes the worker every time would loop forever; (2) the design computes Flakes in SQL (design §6), which unit-test coverage can't measure, while integration tests against real PostgreSQL can |
