@@ -496,13 +496,13 @@ The test file column is filled in during implementation.
 | FR-10 | M | AC-09 | `apps/api/src/report-intake/xml-pre-check.test.ts`, `apps/api/test/report-intake.int.test.ts` |
 | FR-11 | M | AC-04 | `apps/api/test/report-intake.int.test.ts` |
 | FR-12 | M | AC-10 | `apps/api/test/report-intake.int.test.ts` |
-| FR-13 | M | AC-04, AC-18 | `apps/api/test/report-intake.int.test.ts` (AC-04 part), `apps/api/test/report-processing.int.test.ts` (background processing part; AC-18 comes with ticket 09) |
+| FR-13 | M | AC-04, AC-18 | `apps/api/test/report-intake.int.test.ts` (AC-04 part), `apps/api/test/report-processing.int.test.ts` (AC-18 part) |
 | FR-14 | M | AC-11, AC-15 | `apps/api/src/junit/junit.test.ts`, `apps/api/test/report-processing.int.test.ts` |
 | FR-15 | M | AC-11 | `apps/api/src/junit/junit.test.ts`, `apps/api/test/report-processing.int.test.ts` |
 | FR-16 | M | AC-11, AC-12 | `apps/api/src/junit/junit.test.ts` |
 | FR-17 | M | AC-14, AC-15 | `apps/api/src/junit/junit.test.ts`, `apps/api/test/report-processing.int.test.ts` |
-| FR-18 | M | AC-16 | |
-| FR-19 | M | AC-13 | |
+| FR-18 | M | AC-16 | `apps/api/test/report-processing.int.test.ts` |
+| FR-19 | M | AC-13 | `apps/api/test/report-processing.int.test.ts` |
 | FR-20 | C | AC-32 | |
 | FR-21 | M | AC-19, AC-20, AC-21 | `apps/api/test/flake-analysis.int.test.ts` |
 | FR-22 | M | AC-22 | `apps/api/test/flake-analysis.int.test.ts` |
@@ -522,8 +522,8 @@ The test file column is filled in during implementation.
 | NFR-01 | | AC-34 | |
 | NFR-02 | | AC-35 | |
 | NFR-03 | | AC-36 | |
-| NFR-04 | | AC-16, AC-17 | |
-| NFR-05 | | AC-13, AC-18 | |
+| NFR-04 | | AC-16, AC-17 | `apps/api/test/report-processing.int.test.ts` |
+| NFR-05 | | AC-13, AC-18 | `apps/api/test/report-processing.int.test.ts` |
 | NFR-06 | | AC-05 | `apps/api/src/projects/token.test.ts`, `apps/api/test/report-intake.int.test.ts` |
 | NFR-07 | | AC-09 | `apps/api/src/report-intake/xml-pre-check.test.ts`, `apps/api/test/report-intake.int.test.ts` |
 | NFR-08 | | AC-27 | |

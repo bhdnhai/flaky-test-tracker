@@ -1,6 +1,6 @@
 # 09 — Processing reliability: retries, failure, claim expiry, idempotency
 
-Status: ready-for-agent
+Status: resolved
 Priority: must
 Blocked by: 03
 
@@ -27,10 +27,10 @@ FR-18, FR-19; NFR-04, NFR-05. ACs: AC-13, AC-16, AC-17, AC-18.
 
 ## Acceptance checks
 
-- [ ] **AC-13** (FR-19, NFR-05). **Given** a well-formed Report with root `<testsuites>` but test cases the parser can't read, **when** it is submitted, **then** the response is still `202`, and after 3 attempts the Report is `failed`, with an error shown on the Reports page.
-- [ ] **AC-16** (FR-18, NFR-04). **Given** a processed Report, **when** it is processed again (by reprocessing or a simulated retry), **then** the number of Outcomes for that Report doesn't change.
-- [ ] **AC-17** (NFR-04). **Given** a Report in `processing` whose worker was killed, **when** 60 s have passed and the worker is running again, **then** the Report reaches `processed` and has exactly one Outcome per test case.
-- [ ] **AC-18** (NFR-05). **Given** the worker is stopped, **when** 3 Reports are submitted, **then** all get `202` and stay `pending`. **When** the worker starts, **then** all 3 reach `processed`.
+- [x] **AC-13** (FR-19, NFR-05). **Given** a well-formed Report with root `<testsuites>` but test cases the parser can't read, **when** it is submitted, **then** the response is still `202`, and after 3 attempts the Report is `failed`, with an error shown on the Reports page.
+- [x] **AC-16** (FR-18, NFR-04). **Given** a processed Report, **when** it is processed again (by reprocessing or a simulated retry), **then** the number of Outcomes for that Report doesn't change.
+- [x] **AC-17** (NFR-04). **Given** a Report in `processing` whose worker was killed, **when** 60 s have passed and the worker is running again, **then** the Report reaches `processed` and has exactly one Outcome per test case.
+- [x] **AC-18** (NFR-05). **Given** the worker is stopped, **when** 3 Reports are submitted, **then** all get `202` and stay `pending`. **When** the worker starts, **then** all 3 reach `processed`.
 
 **How to verify by hand:**
 
@@ -49,11 +49,22 @@ FR-18, FR-19; NFR-04, NFR-05. ACs: AC-13, AC-16, AC-17, AC-18.
 
 ## Definition of done
 
-- [ ] Every AC listed above has a passing test at the level named under "Tests expected", with the AC ID in the test name.
-- [ ] `npm run lint`, `npm run typecheck`, unit and integration tests are green; E2E is green if this ticket touches the dashboard or the demo.
-- [ ] `docs/02-srs.md` traceability matrix: test file(s) filled in for the ACs above.
-- [ ] If implementation proved the SRS or design wrong or incomplete: `docs/02-srs.md` and/or `docs/03-design.md` updated, a line added to the SRS document history, and the discovery written under `## Comments` below.
-- [ ] README updated if setup, run or test commands changed.
-- [ ] One focused commit, Conventional Commits format, referencing this ticket (e.g. `feat(intake): … (#NN)`).
+- [x] Every AC listed above has a passing test at the level named under "Tests expected", with the AC ID in the test name.
+- [x] `npm run lint`, `npm run typecheck`, unit and integration tests are green; E2E is green if this ticket touches the dashboard or the demo.
+- [x] `docs/02-srs.md` traceability matrix: test file(s) filled in for the ACs above.
+- [x] If implementation proved the SRS or design wrong or incomplete: `docs/02-srs.md` and/or `docs/03-design.md` updated, a line added to the SRS document history, and the discovery written under `## Comments` below.
+- [x] README updated if setup, run or test commands changed.
+- [x] One focused commit, Conventional Commits format, referencing this ticket (e.g. `feat(intake): … (#NN)`).
 
 ## Comments
+
+Built `ReportQueueService.fail`/`releaseExpired`, `ReportProcessingService.sweep`, and a
+`platform/clock.ts` (`SystemClock`/`TestClock`). `processNext` now catches any error from
+interpreting or persisting a Report and calls `fail` instead of letting it crash the worker.
+`worker.ts` runs `sweep` on a 10 s timer alongside the existing poll loop.
+
+No SRS/design divergence beyond what's noted inline in the matrix. README/commands unchanged
+(no new scripts). Reports page already rendered `error`; no UI change needed.
+
+Follow-up (out of scope, ticket 15): `reprocess-report` CLI to drive `pending`/`failed` → retry
+by hand.

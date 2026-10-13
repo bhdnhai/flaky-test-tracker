@@ -1,13 +1,16 @@
 import type { INestApplicationContext } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { submitReportResponseSchema } from '@ftt/contracts';
+import request from 'supertest';
 import { afterEach, describe, expect, it } from 'vitest';
 import { AppModule } from '../src/app.module.js';
-import { loadConfig } from '../src/platform/index.js';
+import { loadConfig, TestClock } from '../src/platform/index.js';
 import { PrismaService } from '../src/platform/prisma.service.js';
 import { ProjectsService } from '../src/projects/index.js';
 import { ReportIntakeService } from '../src/report-intake/index.js';
 import { ReportProcessingService } from '../src/report-processing/index.js';
 import { createTestDatabase } from './support/database.js';
+import { createHttpTestContext } from './support/http.js';
 
 const SOME_COMMIT = 'a'.repeat(40);
 
@@ -167,5 +170,191 @@ describe('ReportProcessingService (via the Nest application context)', () => {
     expect(tests).toHaveLength(2);
     const outcomes = await prisma.outcome.findMany({ where: { reportId: submitted.id } });
     expect(outcomes).toHaveLength(2);
+  });
+});
+
+describe('ReportProcessingService — reliability (ticket 09)', () => {
+  let app: INestApplicationContext | undefined;
+
+  afterEach(async () => {
+    await app?.close();
+  });
+
+  const POISON_REPORT = `
+<testsuites>
+  <testsuite name="suite">
+    <testcase name="missing-classname" />
+  </testsuite>
+</testsuites>`;
+
+  it('AC-13: a well-formed Report with a test case the parser can\'t read still gets 202, then fails after 3 attempts with an error', async () => {
+    const context = await createHttpTestContext();
+    app = context.app;
+    const { server, projects, prisma } = context;
+    const { token } = await projects.create('web-app');
+    const processing = app.get(ReportProcessingService);
+    const clock = new TestClock(new Date('2026-01-01T00:00:00.000Z'));
+
+    const res = await request(server)
+      .post(`/api/v1/reports?commit=${SOME_COMMIT}`)
+      .set('Authorization', `Bearer ${token}`)
+      .set('Content-Type', 'application/xml')
+      .send(POISON_REPORT);
+
+    expect(res.status).toBe(202);
+    const reportId = submitReportResponseSchema.parse(res.body).id;
+
+    // Attempt 1: fails; attempts (1) < 3, so pending with a 2^1 = 2s back-off.
+    await processing.processNext(clock.now());
+    let report = await prisma.report.findUniqueOrThrow({ where: { id: reportId } });
+    expect(report.processingState).toBe('pending');
+    expect(report.processingAttempts).toBe(1);
+    expect(report.nextAttemptAt?.getTime()).toBe(clock.now().getTime() + 2_000);
+    expect(report.error).toBeTruthy();
+
+    // Not due yet: the worker finds nothing to do.
+    expect(await processing.processNext(clock.now())).toBe(false);
+
+    // Attempt 2: fails; attempts (2) < 3, so pending with a 2^2 = 4s back-off.
+    clock.advanceBy(2_000);
+    await processing.processNext(clock.now());
+    report = await prisma.report.findUniqueOrThrow({ where: { id: reportId } });
+    expect(report.processingState).toBe('pending');
+    expect(report.processingAttempts).toBe(2);
+
+    // Attempt 3: fails; attempts (3) is no longer < 3, so failed with the error.
+    clock.advanceBy(4_000);
+    await processing.processNext(clock.now());
+    report = await prisma.report.findUniqueOrThrow({ where: { id: reportId } });
+    expect(report.processingState).toBe('failed');
+    expect(report.processingAttempts).toBe(3);
+    expect(report.nextAttemptAt).toBeNull();
+    expect(report.error).toBeTruthy();
+  });
+
+  async function createContext(): Promise<{
+    projects: ProjectsService;
+    reportIntake: ReportIntakeService;
+    processing: ReportProcessingService;
+    prisma: PrismaService;
+  }> {
+    const config = loadConfig({ DATABASE_URL: await createTestDatabase() });
+    const context = await NestFactory.createApplicationContext(AppModule.forRoot(config), {
+      logger: false,
+    });
+    app = context;
+    return {
+      projects: context.get(ProjectsService),
+      reportIntake: context.get(ReportIntakeService),
+      processing: context.get(ReportProcessingService),
+      prisma: context.get(PrismaService),
+    };
+  }
+
+  it('AC-16: reprocessing a processed Report (a simulated retry) does not change its Outcome count', async () => {
+    const { projects, reportIntake, processing, prisma } = await createContext();
+    const { project } = await projects.create('web-app');
+    const { report: submitted } = await reportIntake.submit({
+      project,
+      commitSha: SOME_COMMIT,
+      metadata: {},
+      body: Buffer.from(FOUR_CASE_REPORT),
+    });
+
+    await processing.processNext(new Date());
+    const outcomesAfterFirst = await prisma.outcome.findMany({
+      where: { reportId: submitted.id },
+    });
+    expect(outcomesAfterFirst).toHaveLength(4);
+
+    // Simulate a retry: the Report goes back to `pending`, as `reprocess-report` (ticket 15)
+    // or a crashed claim's retry would leave it, without touching the Outcomes already there.
+    await prisma.report.update({
+      where: { id: submitted.id },
+      data: { processingState: 'pending', processedAt: null },
+    });
+
+    await processing.processNext(new Date());
+    const report = await prisma.report.findUniqueOrThrow({ where: { id: submitted.id } });
+    expect(report.processingState).toBe('processed');
+
+    const outcomesAfterSecond = await prisma.outcome.findMany({
+      where: { reportId: submitted.id },
+    });
+    expect(outcomesAfterSecond).toHaveLength(4);
+  });
+
+  it('AC-17: a killed worker\'s claim expires after 60s and the Report is then processed exactly once', async () => {
+    const { projects, reportIntake, processing, prisma } = await createContext();
+    const { project } = await projects.create('web-app');
+    const { report: submitted } = await reportIntake.submit({
+      project,
+      commitSha: SOME_COMMIT,
+      metadata: {},
+      body: Buffer.from(FOUR_CASE_REPORT),
+    });
+
+    const clock = new TestClock(new Date('2026-01-01T00:00:00.000Z'));
+
+    // Simulate a worker claiming the Report, then being killed before completing.
+    await prisma.report.update({
+      where: { id: submitted.id },
+      data: { processingState: 'processing', claimedAt: clock.now(), processingAttempts: 1 },
+    });
+
+    // Under 60s: the claim is still live, nothing to release or claim.
+    clock.advanceBy(59_000);
+    await processing.sweep(clock.now());
+    let report = await prisma.report.findUniqueOrThrow({ where: { id: submitted.id } });
+    expect(report.processingState).toBe('processing');
+    expect(await processing.processNext(clock.now())).toBe(false);
+
+    // Past 60s: the claim is released back to `pending` and can be claimed again.
+    clock.advanceBy(2_000);
+    await processing.sweep(clock.now());
+    report = await prisma.report.findUniqueOrThrow({ where: { id: submitted.id } });
+    expect(report.processingState).toBe('pending');
+
+    const didWork = await processing.processNext(clock.now());
+    expect(didWork).toBe(true);
+    report = await prisma.report.findUniqueOrThrow({ where: { id: submitted.id } });
+    expect(report.processingState).toBe('processed');
+
+    const outcomes = await prisma.outcome.findMany({ where: { reportId: submitted.id } });
+    expect(outcomes).toHaveLength(4);
+  });
+
+  it('AC-18: Reports submitted while the worker is stopped stay pending, and all reach processed once it starts', async () => {
+    const { projects, reportIntake, processing, prisma } = await createContext();
+    const { project } = await projects.create('web-app');
+
+    const submittedIds: string[] = [];
+    // Distinct commits: identical (project, commit, content) would be a duplicate (FR-12),
+    // not a 2nd and 3rd Report.
+    for (const commitSha of ['a', 'b', 'c'].map((c) => c.repeat(40))) {
+      const { report } = await reportIntake.submit({
+        project,
+        commitSha,
+        metadata: {},
+        body: Buffer.from(FOUR_CASE_REPORT),
+      });
+      submittedIds.push(report.id);
+      expect(report.processingState).toBe('pending');
+    }
+
+    const pendingReports = await prisma.report.findMany({
+      where: { id: { in: submittedIds } },
+    });
+    expect(pendingReports.every((r) => r.processingState === 'pending')).toBe(true);
+
+    for (let i = 0; i < 3; i++) {
+      expect(await processing.processNext(new Date())).toBe(true);
+    }
+    expect(await processing.processNext(new Date())).toBe(false);
+
+    const processedReports = await prisma.report.findMany({
+      where: { id: { in: submittedIds } },
+    });
+    expect(processedReports.every((r) => r.processingState === 'processed')).toBe(true);
   });
 });

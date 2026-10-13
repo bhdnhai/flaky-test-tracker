@@ -25,8 +25,7 @@ function collisionWarningOf(collisions: CollidingIdentity[]): Prisma.InputJsonVa
 
 /**
  * The worker loop's unit of work: claim → interpret → persist Tests and Outcomes
- * idempotently → complete (design §4). Happy path only (ticket 03); retry and failure
- * handling arrive with ticket 09.
+ * idempotently → complete or fail (design §4, FR-18, FR-19).
  */
 @Injectable()
 export class ReportProcessingService {
@@ -41,46 +40,75 @@ export class ReportProcessingService {
     const claimed = await this.queue.claimNext(now);
     if (!claimed) return false;
 
-    const content = await this.prisma.reportContent.findUniqueOrThrow({
-      where: { reportId: claimed.id },
-    });
-    const { cases, collisions } = interpret(Buffer.from(content.body).toString('utf-8'));
+    try {
+      const content = await this.prisma.reportContent.findUniqueOrThrow({
+        where: { reportId: claimed.id },
+      });
+      const { cases, collisions } = interpret(Buffer.from(content.body).toString('utf-8'));
 
-    await this.prisma.$transaction(async (tx) => {
-      const testIdByIdentity = await upsertTests(tx, claimed.projectId, cases);
+      await this.prisma.$transaction(async (tx) => {
+        const testIdByIdentity = await upsertTests(tx, claimed.projectId, cases);
 
-      if (cases.length > 0) {
-        await tx.outcome.createMany({
-          skipDuplicates: true, // Idempotent re-processing of the same attempt (FR-18);
-          // colliding cases never reach here — `interpret` already excluded them (FR-17).
-          data: cases.map((testCase) => ({
-            reportId: claimed.id,
-            testId: testIdByIdentity.get(identityKeyOf(testCase.classname, testCase.name))!,
-            projectId: claimed.projectId,
-            commitSha: claimed.commitSha,
-            result: testCase.result,
-            failureMessage: testCase.failureMessage,
-            receivedAt: claimed.receivedAt,
-          })),
-        });
-      }
+        if (cases.length > 0) {
+          await tx.outcome.createMany({
+            skipDuplicates: true, // Idempotent re-processing of the same attempt (FR-18);
+            // colliding cases never reach here — `interpret` already excluded them (FR-17).
+            data: cases.map((testCase) => ({
+              reportId: claimed.id,
+              testId: testIdByIdentity.get(identityKeyOf(testCase.classname, testCase.name))!,
+              projectId: claimed.projectId,
+              commitSha: claimed.commitSha,
+              result: testCase.result,
+              failureMessage: testCase.failureMessage,
+              receivedAt: claimed.receivedAt,
+            })),
+          });
+        }
 
-      await this.queue.complete(tx, claimed.id, now, collisionWarningOf(collisions));
-    });
+        await this.queue.complete(tx, claimed.id, now, collisionWarningOf(collisions));
+      });
 
-    // One log line per Report state change (design §9): full observability (redaction,
-    // structured pino output, NFR-10) is ticket 10's job; this is the happy-path shape.
-    console.log(
-      JSON.stringify({
-        reportId: claimed.id,
-        from: 'pending',
-        to: 'processed',
-        attempt: claimed.processingAttempts,
-        durationMs: Date.now() - startedAt,
-      }),
-    );
+      // One log line per Report state change (design §9): full observability (redaction,
+      // structured pino output, NFR-10) is ticket 10's job; this is the happy-path shape.
+      console.log(
+        JSON.stringify({
+          reportId: claimed.id,
+          from: 'pending',
+          to: 'processed',
+          attempt: claimed.processingAttempts,
+          durationMs: Date.now() - startedAt,
+        }),
+      );
+    } catch (error) {
+      // A poison Report (parseable root, unreadable test cases) must not crash the
+      // worker (NFR-05): the attempt is recorded and the Report retried or failed (FR-19).
+      const message = error instanceof Error ? error.message : String(error);
+      await this.queue.fail(claimed.id, message, claimed.processingAttempts, now);
+      console.log(
+        JSON.stringify({
+          reportId: claimed.id,
+          from: 'pending',
+          to: 'processing-failed',
+          attempt: claimed.processingAttempts,
+          error: message,
+          durationMs: Date.now() - startedAt,
+        }),
+      );
+    }
 
     return true;
+  }
+
+  /**
+   * Releases claims that have sat in `processing` past the 60 s claim window — a worker
+   * was killed mid-attempt — so the Report can be retried or marked `failed` (NFR-04).
+   * Called on a timer from the worker entry point.
+   */
+  async sweep(now: Date): Promise<void> {
+    const releasedCount = await this.queue.releaseExpired(now);
+    if (releasedCount > 0) {
+      console.log(JSON.stringify({ event: 'claims-released', count: releasedCount }));
+    }
   }
 }
 
