@@ -125,7 +125,7 @@ Test paths are relative to the repository root. "int" = integration against real
 | AC-23 | ✅ | `apps/web/e2e/test-search-and-detail.spec.ts`, `apps/web/e2e/core-workflow.spec.ts` |
 | AC-24 | ✅ | `packages/contracts/src/tests.test.ts`, `apps/api/test/read-api.int.test.ts` |
 | AC-25 | ✅ | `apps/api/test/flake-analysis.int.test.ts`, `apps/web/e2e/core-workflow.spec.ts` |
-| AC-26 | ⚠️ | `apps/web/e2e/core-workflow.spec.ts` (stable), `apps/web/e2e/reports.spec.ts` (**itself flaky**: it asserts `pending` and races the worker; it failed 1 of 3 runs on 2026-10-14; D-09) |
+| AC-26 | ✅ | `apps/web/e2e/core-workflow.spec.ts`, `apps/web/e2e/reports.spec.ts` (fixed by ticket 18: waits for the terminal `processed` state instead of asserting transient `pending`; 10/10 runs passed, plus a clean full-suite run; D-09 fixed) |
 | AC-27 | ✅ | `apps/web/e2e/xss-safety.spec.ts` |
 | AC-28 | ✅ | `apps/web/e2e/reviewer-demo.spec.ts` after `npm run demo` |
 | AC-29 | ✅ | Code-review checklist: `fixtures/flaky-suite/tests/` was read in ticket 06 and again in this review. The flakiness comes only from `tests/support/race.ts`. |
@@ -205,7 +205,7 @@ From the ticket 17 code review (Spec and Standards axes run as separate sub-agen
 | D-06 | A failed Report stores raw exception text, including server file paths from Prisma | `apps/api/src/report-processing/report-processing.service.ts` | Spec (§9.1 spirit) |
 | D-07 | NFR-10 state-change lines are incomplete or mislabelled | `report-processing.service.ts`, `report-queue.ts`, `cli.ts` | Spec |
 | D-08 | `urlencode` in the composite action isn't UTF-8-safe | `.github/actions/submit-report/submit.sh` | Spec |
-| D-09 | The AC-26 E2E test races the worker (seen in tickets 04, 06 and 11, and again here) | `apps/web/e2e/reports.spec.ts` | Test |
+| D-09 | ~~The AC-26 E2E test races the worker (seen in tickets 04, 06 and 11, and again here)~~ **Fixed by ticket 18**: asserts the terminal `processed` state via `toPass` instead of transient `pending`. | `apps/web/e2e/reports.spec.ts` | Test |
 | D-10 | The worker loop doesn't catch errors from the database during claim/`fail`, so the process exits (Compose restarts it) | `apps/api/src/worker.ts` | Spec (minor) |
 | D-11 | The ReportQueue seam leaks `Prisma.TransactionClient` and an extra `attempts` parameter beyond design §4's interface, and lives inside `report-processing/` rather than as its own module | `report-queue.ts`, `cli.ts` | Standards |
 | D-12 | Time isn't injected everywhere: `new Date()` in `ProjectsService` and the read controllers | `projects.service.ts`, `read-api/*.controller.ts` | Standards |

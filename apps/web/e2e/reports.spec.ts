@@ -32,7 +32,12 @@ test('AC-26: Projects → Reports shows a submitted Report (the part that does n
   const row = page.getByRole('row', { name: new RegExp(commit.slice(0, 7)) });
   await expect(row).toBeVisible();
   await expect(row).toContainText('main');
-  await expect(row).toContainText('pending');
+  // AC-26/D-09: the worker may already have processed the Report by the time this runs, so
+  // wait for the terminal state instead of asserting the transient `pending` one.
+  await expect(async () => {
+    await page.reload();
+    await expect(row).toContainText('processed');
+  }).toPass({ timeout: 10_000 });
 });
 
 test('AC-26: Flaky Tests page lists a Test after two submissions on the same Commit disagree', async ({
