@@ -40,7 +40,7 @@ The full list, in value order, is in [validation §6](04-validation.md#6-next-it
 ## Numbers
 
 - 21 tickets total: 16 feature, 1 docs, 4 post-validation fixes; 19 commits (two pairs of tickets shared a commit because they touched the same file).
-- 35/35 FRs built; 0 ❌. At first validation: 12 ⚠️. After tickets 18–20: 3 ⚠️ remain (NFR-10/D-07, FR-34/AC-31, NFR-12/AC-39 in CI) plus one new minor finding (D-17, a terminology label) from the second pass.
+- 35/35 FRs built; 0 ❌. At first validation: 12 ⚠️. After tickets 18–20: 3 ⚠️ remain (NFR-10/D-07, FR-34/AC-31, NFR-12/AC-39 in CI) plus one new minor finding (D-17, a terminology label) from the second pass, since fixed.
 - 41 unit, 70 integration and 13 E2E tests, all green on a fresh run; JUnit module at 100% line, 90.5% branch coverage.
 - p95 (ticket 12, not re-measured since): submission 79 ms (target < 300), processing 0.9 s (< 5 s), reads ≤ 116 ms (< 500).
 - 7 SRS revisions after the v1.0 baseline (v1.1 … v1.7), each with a recorded trigger.

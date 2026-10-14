@@ -12,7 +12,7 @@
 
 1. **NFR-10** (state-change log lines): still incomplete. Ticket 21, which was scoped to fix it, was never implemented (`Status: ready-for-agent`, empty Comments, no commit) — this is not a new finding, it's the same D-07 gap, now re-confirmed against the current code with one extra detail (below).
 2. **FR-34 / AC-31 and AC-39**: still need a real GitHub run. This repository has no remote, so the `dogfood` job and "CI runs lint/typecheck/coverage" have only ever been simulated locally.
-3. One **new, minor finding** from this review that wasn't caught before: the Test detail page labels a column **"Run"** (`TestDetailPage.tsx:63`), which reifies the "Run" concept CONTEXT.md explicitly says iteration 1 does not have. Recorded as D-17 below.
+3. One **new, minor finding** from this review that wasn't caught before: the Test detail page labels a column **"Run"** (`TestDetailPage.tsx:63`), which reifies the "Run" concept CONTEXT.md explicitly says iteration 1 does not have. Recorded as D-17 below; **since fixed** (the column is now "CI run").
 
 ## 1. Implemented slice and demo path
 
@@ -137,7 +137,7 @@ No SRS or design change was needed for tickets 18, 19 or 20 — each was a defec
 
 - **Fully fixed since first validation:** AC-26 (ticket 18, D-09); FR-29, FR-30 (ticket 19, D-01, D-02); FR-08, FR-24, FR-19, NFR-06, FR-33 (ticket 20, D-03, D-04, D-05, D-06, D-08); NFR-04 wording (SRS v1.7). All re-verified in this review's own test run (§9), not just carried forward.
 - **Still partly met:** **NFR-10** (D-07 — ticket 21 was never implemented), **FR-34 / AC-31** and **AC-39** (both need a real GitHub remote, which this repository doesn't have).
-- **New minor gap found by this review:** the "Run" column label on Test detail (D-17, §7) — a terminology slip, not a functional gap.
+- **New minor gap found by this review:** the "Run" column label on Test detail (D-17, §7) — a terminology slip, not a functional gap. **Fixed after this review:** relabelled "CI run".
 - **Evidence only a real GitHub remote can give:** AC-31 and A4 (push, then "Re-run failed jobs"), AC-39 in CI, and A8 on GitHub runners.
 - **Assumptions that need real teams:** A1, A3, A6, A7, A9 (A9 is less weakened now that FR-30's fix text ships).
 
@@ -147,9 +147,8 @@ No SRS or design change was needed for tickets 18, 19 or 20 — each was a defec
 2. **Finish ticket 21** (NFR-10 state-change logging, D-07; the worker-loop error handling, D-10): scoped and ready, just never run.
 3. **Run on a real GitHub remote** and record AC-31, A4, A8 and AC-39. This is cheap and turns four "unknown" or ⚠️ items into evidence.
 4. **ReportQueue interface cleanup** (D-11): stop leaking `Prisma.TransactionClient` across the module boundary before more code grows around the current shape.
-5. Fix the "Run" column label (D-17) — a five-minute terminology fix.
-6. An explicit "fixed" state for a Flaky Test (problem definition open questions).
-7. Retention for raw content (non-goal 10) once database size matters.
+5. An explicit "fixed" state for a Flaky Test (problem definition open questions).
+6. Retention for raw content (non-goal 10) once database size matters.
 
 ## 7. Technical debt
 
@@ -191,7 +190,7 @@ From the ticket 17 code review (Spec and Standards axes, parallel sub-agents, ov
 | D-14 | Test names without an ID: two FR-20 tests (`report-processing.int.test.ts:473,486`) and the four per-page AC-37 tests (the ID is only on their `describe`, `accessibility.spec.ts:44,50,57,66`). Re-confirmed present. **Still open.** | `report-processing.int.test.ts`, `accessibility.spec.ts` | Standards |
 | D-15 | `npm audit` reports high findings, transitive in the `prisma` CLI. The only offered fix downgrades below ADR-0008's version. | `package-lock.json` | Ticket 01 |
 | D-16 | SRS §9.1 has no code for `403`/`405`/`429`. The filter maps them to `500`. Low impact: no code path in the app currently produces those statuses (no RBAC, no rate limiting built, per ADR-0002/SRS §14). | `apps/api/src/platform/` | Ticket 01 |
-| D-17 | **New, found by this review.** Test detail's history table labels a column **"Run"** (`TestDetailPage.tsx:63`), which shows `runId`/`runAttempt`. CONTEXT.md is explicit that "Run... is deliberately not a concept" in iteration 1 — only the CI run ID is an attribute of a Report. The Reports page avoids this correctly, labelling the equivalent column "Run attempt" (`ReportsPage.tsx:51`). A terminology slip, not a functional defect; the underlying data and API field names (`runId`, `runAttempt`) are correct and consistent with the glossary. | `apps/web/src/features/test-detail/TestDetailPage.tsx` | Standards (terminology) |
+| D-17 | ~~**New, found by this review.** Test detail's history table labels a column **"Run"** (`TestDetailPage.tsx:63`), which shows `runId`/`runAttempt`. CONTEXT.md is explicit that "Run... is deliberately not a concept" in iteration 1 — only the CI run ID is an attribute of a Report. The Reports page avoids this correctly, labelling the equivalent column "Run attempt" (`ReportsPage.tsx:51`). A terminology slip, not a functional defect; the underlying data and API field names (`runId`, `runAttempt`) are correct and consistent with the glossary.~~ **Fixed after this review**: relabelled "CI run". | `apps/web/src/features/test-detail/TestDetailPage.tsx` | Standards (terminology) |
 
 Small smells noted and accepted, unchanged since first validation: nested ternaries in `FlakyTestsPage.tsx`, the `result` field name (CONTEXT.md lists "result" under Outcome's *Avoid*, but the DB column and the SRS use it), and pass-through row mappers in the read controllers.
 

@@ -60,7 +60,7 @@ export function TestDetailPage() {
                   <TableCell>Result</TableCell>
                   <TableCell>Failure message</TableCell>
                   <TableCell>Branch</TableCell>
-                  <TableCell>Run</TableCell>
+                  <TableCell>CI run</TableCell>
                   <TableCell>Job</TableCell>
                   <TableCell>Received</TableCell>
                 </TableRow>
