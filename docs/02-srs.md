@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| Version | 1.5 (see [Document history](#18-document-history)) |
-| Status | Baseline for implementation |
+| Version | 1.6 (see [Document history](#18-document-history)) |
+| Status | Iteration 1 implemented; validated in [docs/04-validation.md](04-validation.md) |
 | Problem definition | [docs/01-problem-definition.md](01-problem-definition.md) |
 | Glossary | [CONTEXT.md](../CONTEXT.md) |
 | Decisions | [docs/adr/](adr/) (ADR-0001 … ADR-0005) |
@@ -388,15 +388,15 @@ Statuses come from the [problem definition](01-problem-definition.md#assumptions
 
 | # | Assumption | How we'd find out it's wrong | Status |
 |---|---|---|---|
-| A1 | Teams re-run failed jobs often enough to produce evidence on the same Commit. | Frequency of `GITHUB_RUN_ATTEMPT > 1` in a real repository | Open |
+| A1 | Teams re-run failed jobs often enough to produce evidence on the same Commit. | Frequency of `GITHUB_RUN_ATTEMPT > 1` in a real repository | Open: no real repository measured (validation §3) |
 | A2 | `classname` + `name` identify a Test stably. | Prototype | Partially refuted → handled by ADR-0005 and FR-17 |
-| A3 | Runner or environment differences on the same Commit rarely masquerade as flakiness. | Flakes that only appear between different `job` values | Open |
-| A4 | A re-run of a `pull_request` workflow keeps the same `GITHUB_SHA`. | FR-34's workflow, re-run on a PR | Open; checked by FR-34 |
+| A3 | Runner or environment differences on the same Commit rarely masquerade as flakiness. | Flakes that only appear between different `job` values | Open: `job` is stored, no real data yet |
+| A4 | A re-run of a `pull_request` workflow keeps the same `GITHUB_SHA`. | FR-34's workflow, re-run on a PR | Open: the `dogfood` job is built but has never run on GitHub (no remote) |
 | A5 | Retries are visible in JUnit output. | Prototype | Partially confirmed → retries not used as a signal |
 | A6 | An internal network is an acceptable boundary for a no-login dashboard. | Ask target teams' security or ops | Open |
-| A7 | Reports stay well under 10 MB. | Size of real suites' Reports; `413` frequency | Open |
-| A8 | The completion-order race fails about 50% of the time on any machine. | Prototype (host and `--cpus=0.5`); GitHub Actions via FR-34 | Confirmed locally |
-| A9 | Teams that hit Collisions will act on the warning and set the reporter option. | Reports with a persistent Collision warning over several days | Open |
+| A7 | Reports stay well under 10 MB. | Size of real suites' Reports; `413` frequency | Open: 1 MB and 1,000-case Reports tested (AC-34, AC-35); no real suite measured |
+| A8 | The completion-order race fails about 50% of the time on any machine. | Prototype (host and `--cpus=0.5`); GitHub Actions via FR-34 | Confirmed locally; every `npm run demo` lists all 3 flaky fixtures. Not measured on GitHub Actions |
+| A9 | Teams that hit Collisions will act on the warning and set the reporter option. | Reports with a persistent Collision warning over several days | Open: also weakened because the Reports page doesn't yet show the warning's fix text (FR-30 ⚠️) |
 | A10 | Computing Flakes on read meets NFR-03 at the stated volume. | k6 or a seeded benchmark at 10k Tests / 200k Outcomes | Confirmed: `load/seed-reads.mjs` (AC-36), p95 well under 500 ms; no fallback needed |
 
 ## 14. Out of scope
@@ -480,7 +480,7 @@ Unless stated otherwise: a Project `web-app` exists with a valid token, and "a R
 
 ## 16. Traceability matrix
 
-The test file column is filled in during implementation.
+The test file column is filled in during implementation. Status and evidence per requirement are in [validation §2](04-validation.md#2-coverage).
 
 | Requirement | Priority | Acceptance criteria | Test file(s) |
 |---|---|---|---|
@@ -513,8 +513,8 @@ The test file column is filled in during implementation.
 | FR-27 | M | AC-26 | `apps/api/test/read-api.int.test.ts`, `apps/web/e2e/reports.spec.ts`, `apps/web/e2e/core-workflow.spec.ts` |
 | FR-28 | M | AC-23 | `apps/web/e2e/test-search-and-detail.spec.ts`, `apps/web/e2e/core-workflow.spec.ts` |
 | FR-29 | M | AC-25 | `apps/web/e2e/test-search-and-detail.spec.ts`, `apps/web/e2e/core-workflow.spec.ts` |
-| FR-30 | M | AC-26 | `apps/api/test/read-api.int.test.ts`, `apps/web/e2e/reports.spec.ts` (state is always `pending` for now), `apps/web/e2e/core-workflow.spec.ts` |
-| FR-31 | M | AC-28, AC-29 | `fixtures/flaky-suite/tests/` (AC-29: code-review checklist item, see commit message) |
+| FR-30 | M | AC-26 | `apps/api/test/read-api.int.test.ts`, `apps/web/e2e/reports.spec.ts`, `apps/web/e2e/core-workflow.spec.ts` |
+| FR-31 | M | AC-28, AC-29 | `fixtures/flaky-suite/tests/` (AC-29: code-review checklist item, ticket 06 and validation §2.3), `apps/web/e2e/reviewer-demo.spec.ts` |
 | FR-32 | M | AC-28 | `scripts/demo.sh`, `apps/web/e2e/reviewer-demo.spec.ts` |
 | FR-33 | M | AC-30 | `.github/actions/submit-report/test/submit.test.sh` |
 | FR-34 | S | AC-31 | `.github/workflows/ci.yml` (`dogfood` job), `scripts/dogfood.sh` |
@@ -565,3 +565,4 @@ Problems found and fixed while drafting:
 | 1.3 | 2026-10-13 | No requirement changed. Design corrected (design §4): ReportIntake's documented interface now includes `listForProject`/`findOne`, and the module diagram gets a `readapi --> intake` edge, naming it as the Report table's read owner. Traceability matrix: test files for FR-01 … FR-08, FR-11, FR-13 (partial), FR-26, FR-30, NFR-06. | Found while implementing ticket 02: the design never named which module owns Report *reads* for ReadApi (only ReportQueue, arriving in ticket 03, was given Report-table methods), so the first implementation had `ReadApi` query `PrismaService` directly — a documented-standard violation caught by code review. Reusing `ReportIntake`, which already owns the table's writes, closes the gap without inventing a new module ticket 02 doesn't need. |
 | 1.4 | 2026-10-13 | No requirement changed. Design corrected (design §7): predefined XML entities (`&gt;` etc.) are decoded, not disabled via `processEntities: false` as design §7 said. Traceability matrix: test files for FR-13 … FR-17, NFR-12. | Found while implementing ticket 03: `processEntities: false` is all-or-nothing in fast-xml-parser and would have left Vitest's `&gt;`-escaped `name` attributes undecoded, breaking "identity exactly as reported" (FR-14, AC-11) — the library's entity decoder already caps expansion size/depth and screens custom entity values regardless of the toggle, so NFR-07's actual XXE concern (DOCTYPE, external entities) is unaffected. Also found: a Report whose root is a bare `<testsuite>` (no `<testsuites>` wrapper) — a shape already used by this repo's own `SAMPLE_JUNIT_XML` test fixture — silently produced zero Tests/Outcomes while the Report still reported `processed`; `interpret` now accepts both shapes. |
 | 1.5 | 2026-10-14 | No requirement changed. Design corrected (design §10): `apps/web/nginx.conf` now sets `client_max_body_size 10m` on `/api/` to match the API's own raw-body limit (`REPORT_BODY_LIMIT` in `apps/api/src/app.ts`). A10 resolved (§13): confirmed, not just open. | Found while implementing ticket 12 (AC-34): nginx's 1 MB default silently `413`'d a 1 MB Report before it reached the API — the only entry point the Compose stack exposes (`web`, port 8080) — so NFR-01 couldn't even be measured, let alone met, until this was fixed. Also confirmed A10: `load/seed-reads.mjs` measured the on-read Flake query at 10k Tests / 200k Outcomes well under NFR-03's 500 ms, so the per-(Test, Commit) summary fallback (design §6) was not needed. |
+| 1.6 | 2026-10-14 | No requirement changed. Traceability matrix synced with the code (stale FR-30 note removed; FR-31 E2E evidence added; link to the validation coverage table). §13 assumption statuses updated with evidence. Recorded an inconsistency, not resolved: NFR-04 says a killed worker's Report returns to `pending` "within 60 s", but §8 (and the code) expire a claim once it is "older than 60 s", and the 10 s sweep makes the worst case ≈ 70 s. | Ticket 17 validation and its two-axis code review ([docs/04-validation.md](04-validation.md) §4.1) |

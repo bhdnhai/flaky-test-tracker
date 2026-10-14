@@ -1,0 +1,35 @@
+# Retrospective: iteration 1
+
+About two working days, 2026-10-12 to 2026-10-14. Measured against [the validation](04-validation.md).
+
+## What went well
+
+- **The prototype paid for itself before any code existed.** Three runners' real JUnit output, read before the SRS, refuted A2 ("`classname` + `name` is unique"). It also showed that the obvious fix of adding `hostname` to identity would have broken Vitest on every CI runner. The result was ADR-0005 and Collision detection: a requirement nobody would have written from first principles.
+- **Genuinely flaky fixtures instead of a scripted demo.** The completion-order race gives about 50% failure on any machine, so the demo shows the real product on real evidence in under 30 seconds. Rejecting the first, simulated demo design was the single most valuable "no" of the iteration.
+- **Testing against real PostgreSQL.** Flake detection, `SKIP LOCKED` claiming, the duplicate race and idempotency are all SQL behaviour. Testcontainers and a test clock made them fast, deterministic tests with no sleeps (AC-17, AC-22).
+- **Running things instead of trusting them.** Three of the five SRS revisions (v1.2, v1.4, v1.5) came from executing something: package engine fields (Node ≥ 22.22), real reporter XML (`&gt;` in names), a leftover Report shape (zero Outcomes), and k6 (nginx's 1 MB limit). None of these was visible on paper. The other two came from design work (v1.1) and code review (v1.3).
+- **Thin vertical tickets.** The core loop was demoable at ticket 05 and the reviewer path at 06. Everything after that was hardening that could have been cut without losing the product.
+
+## What didn't go well
+
+- **The tests of a flaky-test tracker contain a flaky test.** `reports.spec.ts` asserts a Report is still `pending` and races the 500 ms worker. It was flagged in tickets 04, 06 and 11 and failed again during validation. Each time it was "out of scope". It should have been a one-line fix the first time.
+- **Review discipline faded as the budget tightened.** Tickets 01–02 had a two-axis review, and it found real bugs each time. From ticket 03 onward the review was skipped to save tokens. The single review in ticket 17 then found 8 spec defects, including two Must dashboard requirements that were only partly met (FR-29, FR-30). One of them, the Collision warning text, had been explicitly handed from ticket 08 to ticket 11 and then dropped.
+- **"Done" sometimes meant "the AC test passes", not "the FR is met".** The ACs didn't check per-Commit counts or the Collision warning text, so their tests stayed green while the FRs were incomplete. Validating against FR text, not only AC text, would have caught this earlier.
+- **No GitHub remote.** The CI workflow, the dogfood job (AC-31) and the A4/A8 checks were written but never run where they're meant to run. Pushing to a throwaway repository on day 1 would have cost minutes.
+- **The SRS contradicts itself on claim expiry.** NFR-04 says "within 60 s"; §8 says "older than 60 s". The review found it; drafting didn't.
+
+## What I'd change next time
+
+1. Push to a real remote on day 1 and keep CI green from the walking skeleton onward.
+2. Treat review as part of done, not as optional extra cost. A smaller review on every ticket beats one large review at the end.
+3. Fix test flakiness the first time it's seen, especially in this product.
+4. Before closing a ticket, write each AC check against the FR text, and let the ticket list FR clauses that no AC covers.
+5. Keep the handoff between tickets explicit. "Ticket 11's page audit" was a note in a comment, not a scope line in ticket 11.
+
+## Numbers
+
+- 16 implementation tickets and 1 documentation ticket; 16 feature commits, one per ticket.
+- 35/35 FRs built; 0 ❌, 12 ⚠️ (validation §2).
+- 40 unit, 68 integration and 12 E2E tests; JUnit module at 100% line coverage.
+- p95: submission 79 ms (target < 300), processing 0.9 s (< 5 s), reads ≤ 116 ms (< 500).
+- 5 SRS revisions after the baseline, each with a recorded trigger.

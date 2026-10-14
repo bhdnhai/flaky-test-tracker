@@ -2,7 +2,7 @@
 
 Collects JUnit test results from CI across many runs and identifies tests that pass and fail on the same Commit, so a team can tell flakiness apart from real breakage.
 
-> Status: iteration 1 in progress. An Operator can create a Project, CI can submit a Report, and the worker processes it into Tests and Outcomes (see [`.scratch/iteration-1/`](.scratch/iteration-1/README.md) for what's landed ticket by ticket).
+> Status: iteration 1 complete. What is met, partly met and still open is in the [validation report](docs/04-validation.md).
 
 ## Quick start
 
@@ -128,7 +128,12 @@ npm run dev -w apps/web           # http://localhost:5173, proxies /api and /hea
 
 ## Documentation
 
-- [Problem definition](docs/01-problem-definition.md)
-- [Software requirements specification](docs/02-srs.md)
-- [Solution design](docs/03-design.md) and [ADRs](docs/adr/)
-- [Domain glossary](CONTEXT.md)
+In reading order:
+
+1. [Problem definition](docs/01-problem-definition.md), with the [domain glossary](CONTEXT.md)
+2. [Software requirements specification](docs/02-srs.md)
+3. [Solution design](docs/03-design.md) and [ADRs](docs/adr/)
+4. [Iteration 1 tickets](.scratch/iteration-1/README.md): one commit per ticket; each ticket's Comments record what changed and why
+5. [Validation](docs/04-validation.md): coverage of every FR, NFR and AC, assumptions, debt, risks, test summary
+6. [Retrospective](docs/05-retrospective.md)
+7. [AI usage](docs/06-ai-usage.md)

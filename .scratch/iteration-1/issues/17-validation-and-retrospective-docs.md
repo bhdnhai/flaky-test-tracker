@@ -1,6 +1,6 @@
 # 17 — Validation and retrospective docs
 
-Status: ready-for-agent
+Status: resolved
 Priority: must
 Blocked by: 01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12, 13 (and 14, 15, 16 if done)
 
@@ -29,9 +29,9 @@ All FRs, NFRs and ACs (coverage audit). Assignment deliverables: validation, ret
 
 ## Acceptance checks
 
-- [ ] Every FR, NFR and AC ID in `docs/02-srs.md` appears in the validation coverage table with a status and evidence.
-- [ ] Every assumption A1–A10 has a status with evidence.
-- [ ] The retrospective and the AI usage summary exist and are linked from the README.
+- [x] Every FR, NFR and AC ID in `docs/02-srs.md` appears in the validation coverage table with a status and evidence.
+- [x] Every assumption A1–A10 has a status with evidence.
+- [x] The retrospective and the AI usage summary exist and are linked from the README.
 
 **How to verify by hand:**
 
@@ -47,11 +47,26 @@ All FRs, NFRs and ACs (coverage audit). Assignment deliverables: validation, ret
 
 ## Definition of done
 
-- [ ] Every AC listed above has a passing test at the level named under "Tests expected", with the AC ID in the test name.
-- [ ] `npm run lint`, `npm run typecheck`, unit and integration tests are green; E2E is green if this ticket touches the dashboard or the demo.
-- [ ] `docs/02-srs.md` traceability matrix: test file(s) filled in for the ACs above.
-- [ ] If implementation proved the SRS or design wrong or incomplete: `docs/02-srs.md` and/or `docs/03-design.md` updated, a line added to the SRS document history, and the discovery written under `## Comments` below.
-- [ ] README updated if setup, run or test commands changed.
-- [ ] One focused commit, Conventional Commits format, referencing this ticket (e.g. `feat(intake): … (#NN)`).
+- [x] Every AC listed above has a passing test at the level named under "Tests expected", with the AC ID in the test name.
+- [x] `npm run lint`, `npm run typecheck`, unit and integration tests are green; E2E is green if this ticket touches the dashboard or the demo.
+- [x] `docs/02-srs.md` traceability matrix: test file(s) filled in for the ACs above.
+- [x] If implementation proved the SRS or design wrong or incomplete: `docs/02-srs.md` and/or `docs/03-design.md` updated, a line added to the SRS document history, and the discovery written under `## Comments` below.
+- [x] README updated if setup, run or test commands changed.
+- [x] One focused commit, Conventional Commits format, referencing this ticket (e.g. `feat(intake): … (#NN)`).
 
 ## Comments
+
+### 2026-10-14: resolved
+
+**Built:** `docs/04-validation.md` (coverage of all 35 FRs, 14 NFRs, 39 ACs and A1–A10, each with a status and evidence; changes vs SRS/design; debt D-01…D-16; risks; test summary; traceability walk-through for FR-21, FR-17, NFR-13), `docs/05-retrospective.md`, `docs/06-ai-usage.md`; SRS v1.6 (matrix synced, §13 statuses); design header → SRS v1.6; README docs list in reading order. Every evidence path was checked by script to exist.
+
+**Two-axis code review of `945cc04..0f93e66`** (Spec and Standards, parallel sub-agents). Findings were verified by reading the code, then recorded as debt, not fixed (scope). The most important:
+- FR-29: Test detail doesn't render per-Commit counts. FR-30: the Collision warning shows only "Yes", and a stale `error` stays on a Report that later succeeds. These are Must dashboard gaps that AC tests didn't catch, because no AC checks them.
+- NFR-10: state-change logging is incomplete (no claim line; `to: "processing-failed"`).
+- FR-24: `%`/`_` aren't escaped in search. FR-08: `runAttempt` overflow gives `500`. The dogfood token isn't masked in CI logs (NFR-06).
+
+**Discovery (SRS wrong):** NFR-04 ("within 60 s") contradicts §8 ("claim older than 60 s"). The code follows §8, so the worst case is about 70 s. Recorded in SRS v1.6 history and validation §4.1, not resolved.
+
+**Verification run:** lint and typecheck 0 errors; 40 unit, 68 integration tests and the AC-30 action test passed; demo 28 s; E2E 12 tests, with `reports.spec.ts` failing 1 of 3 runs (known race, D-09).
+
+**Follow-ups (candidates for new tickets):** D-01/D-02 dashboard gaps; D-09 flaky E2E; D-07 logging; D-03/D-04/D-05/D-08 small fixes; push to a GitHub remote to capture AC-31, A4, A8 and AC-39 evidence; decide NFR-04 vs §8.
