@@ -518,7 +518,7 @@ The test file column is filled in during implementation.
 | FR-32 | M | AC-28 | `scripts/demo.sh`, `apps/web/e2e/reviewer-demo.spec.ts` |
 | FR-33 | M | AC-30 | `.github/actions/submit-report/test/submit.test.sh` |
 | FR-34 | S | AC-31 | `.github/workflows/ci.yml` (`dogfood` job), `scripts/dogfood.sh` |
-| FR-35 | C | AC-33 | |
+| FR-35 | C | AC-33 | `scripts/demo-playwright.sh`, `apps/web/e2e-demo-playwright/reviewer-demo-playwright.spec.ts` |
 | NFR-01 | | AC-34 | `load/k6-submit.js` |
 | NFR-02 | | AC-35 | `load/processing.mjs` |
 | NFR-03 | | AC-36 | `load/seed-reads.mjs` |

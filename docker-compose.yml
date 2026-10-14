@@ -87,6 +87,19 @@ services:
     volumes:
       - ./fixtures/flaky-suite/runs:/repo/fixtures/flaky-suite/runs
 
+  # Playwright fixture suite for `npm run demo:playwright` (FR-35, stretch). Not started by
+  # `docker compose up`; only `scripts/demo-playwright.sh` runs it, one `run` per iteration, via
+  # the `demo-playwright` profile. Built from the official Playwright image so chromium and
+  # firefox are already installed.
+  demo-playwright:
+    build:
+      context: .
+      dockerfile: fixtures/playwright-flaky-suite/Dockerfile
+    image: flaky-test-tracker-demo-playwright:local
+    profiles: ['demo-playwright']
+    volumes:
+      - ./fixtures/playwright-flaky-suite/runs:/repo/fixtures/playwright-flaky-suite/runs
+
   # k6 (AC-34), run by `npm run perf:load` / `load/run-k6.sh`. On the Compose network so it
   # reaches `web` directly, rather than through the published host port (design §2, §11).
   k6:

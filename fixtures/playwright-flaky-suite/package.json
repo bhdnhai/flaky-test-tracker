@@ -1,0 +1,13 @@
+{
+  "name": "@ftt/playwright-flaky-suite",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Genuinely flaky Playwright fixture suite for `npm run demo:playwright` (FR-35, stretch); not part of the product.",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.0"
+  }
+}

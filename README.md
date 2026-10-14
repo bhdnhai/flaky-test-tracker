@@ -94,16 +94,17 @@ npm run format        # Prettier
 npm test              # unit + integration tests
 ```
 
-| Command                    | What it runs                                                                                                                                                              | Needs                          |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
-| `npm run test:unit`        | Vitest unit tests in `apps/api`, `apps/web`, `packages/contracts`                                                                                                         | Node                           |
-| `npm run test:integration` | API tests over HTTP against a throwaway PostgreSQL started by Testcontainers ([ADR-0010](docs/adr/0010-integration-tests-against-real-postgres-via-testcontainers.md))    | Docker                         |
-| `npm run test:e2e`         | Playwright against the running Compose stack (`npx playwright install chromium` once)                                                                                     | `docker compose up -d --build` |
-| `npm run test:ci-action`   | Runs `.github/actions/submit-report`'s script against a stub server with fixed `GITHUB_*` vars (AC-30); part of `npm run test:integration`                                | Node                           |
-| `npm run demo`             | `scripts/demo.sh`: creates/reuses the `demo` Project, runs the fixture suite 10 times, submits each Report, prints the dashboard URL (FR-31, FR-32, NFR-13)               | `docker compose up -d --build` |
-| `npm run perf:load`        | k6: 1 MB Reports at 10 requests/s for 60 s; fails if p95 ack time ≥ 300 ms or any response is non-2xx (AC-34, NFR-01)                                                     | `docker compose up -d --build` |
-| `npm run perf:processing`  | Submits 20 Reports of 1,000 test cases, one at a time; fails if p95 time to `processed` ≥ 5 s (AC-35, NFR-02)                                                             | `docker compose up -d --build` |
-| `npm run perf:reads`       | Seeds 10,000 Tests / 200,000 Outcomes into a disposable Testcontainers database, then times 100 requests to each read endpoint; fails if any p95 ≥ 500 ms (AC-36, NFR-03) | Docker                         |
+| Command                    | What it runs                                                                                                                                                                                                                                                                                                                                  | Needs                          |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| `npm run test:unit`        | Vitest unit tests in `apps/api`, `apps/web`, `packages/contracts`                                                                                                                                                                                                                                                                             | Node                           |
+| `npm run test:integration` | API tests over HTTP against a throwaway PostgreSQL started by Testcontainers ([ADR-0010](docs/adr/0010-integration-tests-against-real-postgres-via-testcontainers.md))                                                                                                                                                                        | Docker                         |
+| `npm run test:e2e`         | Playwright against the running Compose stack (`npx playwright install chromium` once)                                                                                                                                                                                                                                                         | `docker compose up -d --build` |
+| `npm run test:ci-action`   | Runs `.github/actions/submit-report`'s script against a stub server with fixed `GITHUB_*` vars (AC-30); part of `npm run test:integration`                                                                                                                                                                                                    | Node                           |
+| `npm run demo`             | `scripts/demo.sh`: creates/reuses the `demo` Project, runs the fixture suite 10 times, submits each Report, prints the dashboard URL (FR-31, FR-32, NFR-13)                                                                                                                                                                                   | `docker compose up -d --build` |
+| `npm run demo:playwright`  | `scripts/demo-playwright.sh`: adds a genuinely flaky Playwright fixture suite to the same `demo` Project, one Test per browser project (FR-35, stretch). The fixture suite runs in the official Playwright image (no host browser install needed for it); the AC-33 check at the end needs `npx playwright install chromium`, like `test:e2e` | `docker compose up -d --build` |
+| `npm run perf:load`        | k6: 1 MB Reports at 10 requests/s for 60 s; fails if p95 ack time ≥ 300 ms or any response is non-2xx (AC-34, NFR-01)                                                                                                                                                                                                                         | `docker compose up -d --build` |
+| `npm run perf:processing`  | Submits 20 Reports of 1,000 test cases, one at a time; fails if p95 time to `processed` ≥ 5 s (AC-35, NFR-02)                                                                                                                                                                                                                                 | `docker compose up -d --build` |
+| `npm run perf:reads`       | Seeds 10,000 Tests / 200,000 Outcomes into a disposable Testcontainers database, then times 100 requests to each read endpoint; fails if any p95 ≥ 500 ms (AC-36, NFR-03)                                                                                                                                                                     | Docker                         |
 
 To run the API outside Docker, start only the database and point the API at it (see [`.env.example`](.env.example)):
 
@@ -117,12 +118,13 @@ npm run dev -w apps/web           # http://localhost:5173, proxies /api and /hea
 
 ## Repository layout
 
-| Path                   | What                                                                                                |
-| ---------------------- | --------------------------------------------------------------------------------------------------- |
-| `apps/api`             | NestJS API; Prisma schema and migrations in `apps/api/prisma`                                       |
-| `apps/web`             | React + Vite + MUI dashboard; Playwright tests in `apps/web/e2e`                                    |
-| `packages/contracts`   | Zod schemas shared by API and dashboard ([ADR-0013](docs/adr/0013-shared-zod-contracts-package.md)) |
-| `fixtures/flaky-suite` | Genuinely flaky Vitest fixture suite for `npm run demo` (FR-31); not part of the product            |
+| Path                              | What                                                                                                             |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `apps/api`                        | NestJS API; Prisma schema and migrations in `apps/api/prisma`                                                    |
+| `apps/web`                        | React + Vite + MUI dashboard; Playwright tests in `apps/web/e2e`                                                 |
+| `packages/contracts`              | Zod schemas shared by API and dashboard ([ADR-0013](docs/adr/0013-shared-zod-contracts-package.md))              |
+| `fixtures/flaky-suite`            | Genuinely flaky Vitest fixture suite for `npm run demo` (FR-31); not part of the product                         |
+| `fixtures/playwright-flaky-suite` | Genuinely flaky Playwright fixture suite for `npm run demo:playwright` (FR-35, stretch); not part of the product |
 
 ## Documentation
 

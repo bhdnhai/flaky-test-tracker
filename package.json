@@ -6,7 +6,8 @@
     "packages/contracts",
     "apps/api",
     "apps/web",
-    "fixtures/flaky-suite"
+    "fixtures/flaky-suite",
+    "fixtures/playwright-flaky-suite"
   ],
   "engines": {
     "node": ">=22.22 <23"
@@ -23,6 +24,7 @@
     "test:ci-action": "bash .github/actions/submit-report/test/submit.test.sh",
     "test:e2e": "npm run test:e2e --workspace apps/web",
     "demo": "bash scripts/demo.sh",
+    "demo:playwright": "bash scripts/demo-playwright.sh",
     "perf:load": "bash load/run-k6.sh",
     "perf:processing": "node load/processing.mjs",
     "perf:reads": "npm run build --workspace packages/contracts --workspace apps/api && node load/seed-reads.mjs"

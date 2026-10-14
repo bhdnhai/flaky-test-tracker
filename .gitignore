@@ -48,3 +48,6 @@ apps/api/src/generated/
 
 # npm run demo's JUnit output from the fixture suite (scripts/demo.sh)
 fixtures/flaky-suite/runs/
+
+# npm run demo:playwright's JUnit output from the fixture suite (scripts/demo-playwright.sh)
+fixtures/playwright-flaky-suite/runs/
