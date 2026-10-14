@@ -18,6 +18,15 @@ Summary of how AI was used on this assignment. It is condensed from a per-step w
 | Code, tests, scripts, CI | Wrote essentially all of it, ticket by ticket, test-first where the skill was active | Set the commit policy; reviewed each ticket's plan and its deviations; made the calls recorded in each ticket's Comments |
 | Verification | Ran the suites and the load scripts and recorded the measured numbers | Ran the demo flow by hand on the Compose stack for tickets 06 and 16 |
 
+## Where AI added the most value
+
+1. **Cheap evidence before decisions.** The prototype harness ran three real reporters 20 times each in minutes. Its output refuted A2 and produced ADR-0005 and Collision detection before any product code existed.
+2. **Turning decisions into a consistent, testable spec.** Drafting the SRS, design and ADRs, asking clarifying questions with a recommendation for each, and checking every FR, NFR and AC against the tickets and tests by script.
+3. **Executing things a human would only have read.** Running the load scripts, real reporter XML and the live stack surfaced three SRS revisions (v1.2, v1.4, v1.5) that weren't visible on paper.
+4. **Review.** The two-axis code review found real defects each time it ran (tickets 01–02, ticket 17 and the second pass), including two partly met Must requirements.
+
+Least value: output accepted without review. Tickets 03–16 skipped the review pass, and the single review at ticket 17 then found 8 spec defects (validation §7.2).
+
 ## AI suggestions that were rejected
 
 | Suggestion | Why it was rejected |
