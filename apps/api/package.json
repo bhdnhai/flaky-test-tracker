@@ -9,7 +9,7 @@
     "start:dev": "nest start --watch",
     "prisma:generate": "prisma generate",
     "typecheck": "prisma generate && tsc --noEmit",
-    "test:unit": "vitest run --project unit --coverage",
+    "test:unit": "prisma generate && vitest run --project unit --coverage",
     "test:integration": "prisma generate && vitest run --project integration"
   },
   "dependencies": {
