@@ -527,7 +527,7 @@ The test file column is filled in during implementation. Status and evidence per
 | NFR-06 | | AC-05 | `apps/api/src/projects/token.test.ts`, `apps/api/test/report-intake.int.test.ts`, `apps/api/test/observability.int.test.ts` |
 | NFR-07 | | AC-09 | `apps/api/src/report-intake/xml-pre-check.test.ts`, `apps/api/test/report-intake.int.test.ts` |
 | NFR-08 | | AC-27 | `eslint.config.js` (`no-restricted-syntax` bans `dangerouslySetInnerHTML`), `apps/web/e2e/xss-safety.spec.ts` |
-| NFR-09 | | AC-37 | `apps/web/e2e/accessibility.spec.ts` |
+| NFR-09 | | AC-37 | `apps/web/e2e/accessibility.spec.ts`, `apps/web/e2e/navigation.spec.ts` |
 | NFR-10 | | AC-38 | `apps/api/test/observability.int.test.ts` |
 | NFR-11 | | AC-38 | `apps/api/test/health.int.test.ts` (health `200`/`503`), `apps/api/test/observability.int.test.ts` (`X-Request-Id`) |
 | NFR-12 | | AC-39 | `.github/workflows/ci.yml` jobs `lint-typecheck` (lint and typecheck) and `unit` (coverage gate: `apps/api/vitest.config.ts` thresholds on `apps/api/src/junit/**`, enforced by `npm run test:unit`, design §11) |

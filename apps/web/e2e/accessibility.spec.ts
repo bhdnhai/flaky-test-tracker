@@ -107,6 +107,13 @@ test('AC-37: the core workflow of AC-23 can be completed with the keyboard only'
   const resultLink = page.getByRole('link', { name: 'parses' });
   await expect(async () => {
     await page.reload();
+    // Tab order: the header's home link, the "Projects" breadcrumb, then search.
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('link', { name: 'Flaky Test Tracker' })).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(
+      page.getByRole('navigation', { name: 'Breadcrumb' }).getByRole('link', { name: 'Projects' }),
+    ).toBeFocused();
     await page.keyboard.press('Tab');
     await expect(searchField).toBeFocused();
     await page.keyboard.type('INGEST');
