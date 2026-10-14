@@ -29,6 +29,14 @@ About two working days, 2026-10-12 to 2026-10-14, plus a second validation pass 
 5. Keep the handoff between tickets explicit. "Ticket 11's page audit" was a note in a comment, not a scope line in ticket 11.
 6. Don't call a defect "handled" once it has a ticket number. It's handled once the ticket has a commit. Track "scoped but not run" as its own state, separate from "open" and "fixed", so it doesn't quietly look done in a list.
 
+## What I'd build next
+
+The full list, in value order, is in [validation §6](04-validation.md#6-next-iteration-in-value-order). The first three:
+
+1. **Feedback inside CI**: the submission response or a PR comment says "known flaky", so the verdict reaches the Engineer where they already are.
+2. **Finish ticket 21**: complete state-change logging (NFR-10) and keep the worker alive on database errors.
+3. **Run on a real GitHub remote**: turn AC-31, AC-39, A4 and A8 into evidence.
+
 ## Numbers
 
 - 21 tickets total: 16 feature, 1 docs, 4 post-validation fixes; 19 commits (two pairs of tickets shared a commit because they touched the same file).
