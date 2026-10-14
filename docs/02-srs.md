@@ -503,7 +503,7 @@ The test file column is filled in during implementation.
 | FR-17 | M | AC-14, AC-15 | `apps/api/src/junit/junit.test.ts`, `apps/api/test/report-processing.int.test.ts` |
 | FR-18 | M | AC-16 | `apps/api/test/report-processing.int.test.ts` |
 | FR-19 | M | AC-13 | `apps/api/test/report-processing.int.test.ts` |
-| FR-20 | C | AC-32 | |
+| FR-20 | C | AC-32 | `apps/api/test/report-processing.int.test.ts` |
 | FR-21 | M | AC-19, AC-20, AC-21 | `apps/api/test/flake-analysis.int.test.ts` |
 | FR-22 | M | AC-22 | `apps/api/test/flake-analysis.int.test.ts` |
 | FR-23 | M | AC-22 | `apps/api/test/flake-analysis.int.test.ts` |

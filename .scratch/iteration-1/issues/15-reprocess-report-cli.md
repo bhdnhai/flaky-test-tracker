@@ -1,6 +1,6 @@
 # 15 — Reprocess a Report from the CLI
 
-Status: ready-for-agent
+Status: resolved
 Priority: stretch
 Blocked by: 09
 
@@ -48,3 +48,5 @@ FR-20 (Could). ACs: AC-32.
 - [ ] One focused commit, Conventional Commits format, referencing this ticket (e.g. `feat(intake): … (#NN)`).
 
 ## Comments
+
+Built `reprocess-report <reportId>` → `ReportQueueService.requeue()`: processed/failed → pending, attempts/claim/error reset; other states rejected with `ReportNotReprocessableError` (SRS §8 transition table), unknown ID with `ReportNotFoundError`. Idempotent re-processing was already guaranteed by `Outcome.createMany({ skipDuplicates: true })` from ticket 09 — no changes needed there. No SRS/design deviations. Integration tests only (no unit seam in scope).

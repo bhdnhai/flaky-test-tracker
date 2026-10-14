@@ -3,11 +3,15 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
 import { loadConfig } from './platform/index.js';
 import { ProjectsService } from './projects/index.js';
+import { ReportQueueService } from './report-processing/index.js';
 
 /** Usage or an unknown command (FR-04). */
 class CliUsageError extends Error {}
 
-/** `create-project <name>` and `rotate-token <name>` (SRS §9.3), run via `docker compose exec`. */
+/**
+ * `create-project <name>`, `rotate-token <name>` and `reprocess-report <reportId>`
+ * (SRS §9.3), run via `docker compose exec`.
+ */
 async function main(): Promise<number> {
   const [command, name] = process.argv.slice(2);
   const config = loadConfig(process.env);
@@ -17,6 +21,7 @@ async function main(): Promise<number> {
 
   try {
     const projects = app.get(ProjectsService);
+    const reportQueue = app.get(ReportQueueService);
     switch (command) {
       case 'create-project': {
         if (!name) throw new CliUsageError('Usage: create-project <name>');
@@ -29,6 +34,12 @@ async function main(): Promise<number> {
         if (!name) throw new CliUsageError('Usage: rotate-token <name>');
         const token = await projects.rotateToken(name);
         console.log(token);
+        return 0;
+      }
+      case 'reprocess-report': {
+        if (!name) throw new CliUsageError('Usage: reprocess-report <reportId>');
+        await reportQueue.requeue(name);
+        console.log('pending');
         return 0;
       }
       default:

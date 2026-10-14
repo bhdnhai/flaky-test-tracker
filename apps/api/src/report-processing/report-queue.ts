@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../platform/index.js';
 import { Prisma } from '../generated/prisma/client.js';
+import { ReportNotFoundError, ReportNotReprocessableError } from './report-queue.errors.js';
 
 export interface ClaimedReport {
   id: string;
@@ -116,6 +117,35 @@ export class ReportQueueService {
    * when the claim that expired was the 3rd attempt (NFR-04, SRS §8). A killed worker's
    * claim is released this way, without waiting on the worker to come back.
    */
+  /**
+   * Returns a `processed` or `failed` Report to `pending` with its attempts reset
+   * (FR-20, SRS §8), for `reprocess-report <reportId>` (Operator CLI). Re-processing is
+   * idempotent (FR-18): `ReportProcessingService.processNext` skips Outcomes already
+   * recorded.
+   */
+  async requeue(reportId: string): Promise<void> {
+    const report = await this.prisma.report.findUnique({
+      where: { id: reportId },
+      select: { processingState: true },
+    });
+    if (!report) throw new ReportNotFoundError(reportId);
+    if (report.processingState !== 'processed' && report.processingState !== 'failed') {
+      throw new ReportNotReprocessableError(reportId, report.processingState);
+    }
+
+    await this.prisma.report.update({
+      where: { id: reportId },
+      data: {
+        processingState: 'pending',
+        processingAttempts: 0,
+        claimedAt: null,
+        nextAttemptAt: null,
+        error: null,
+        processedAt: null,
+      },
+    });
+  }
+
   async releaseExpired(now: Date): Promise<number> {
     const claimCutoff = new Date(now.getTime() - 60_000);
     return this.prisma.$executeRaw`

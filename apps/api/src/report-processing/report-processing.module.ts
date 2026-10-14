@@ -4,6 +4,6 @@ import { ReportQueueService } from './report-queue.js';
 
 @Module({
   providers: [ReportProcessingService, ReportQueueService],
-  exports: [ReportProcessingService],
+  exports: [ReportProcessingService, ReportQueueService],
 })
 export class ReportProcessingModule {}

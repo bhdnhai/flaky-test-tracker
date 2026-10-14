@@ -8,7 +8,12 @@ import { loadConfig, TestClock } from '../src/platform/index.js';
 import { PrismaService } from '../src/platform/prisma.service.js';
 import { ProjectsService } from '../src/projects/index.js';
 import { ReportIntakeService } from '../src/report-intake/index.js';
-import { ReportProcessingService } from '../src/report-processing/index.js';
+import {
+  ReportNotFoundError,
+  ReportNotReprocessableError,
+  ReportProcessingService,
+  ReportQueueService,
+} from '../src/report-processing/index.js';
 import { createTestDatabase } from './support/database.js';
 import { createHttpTestContext } from './support/http.js';
 
@@ -356,5 +361,107 @@ describe('ReportProcessingService — reliability (ticket 09)', () => {
       where: { id: { in: submittedIds } },
     });
     expect(processedReports.every((r) => r.processingState === 'processed')).toBe(true);
+  });
+});
+
+describe('ReportQueueService.requeue (Operator CLI: reprocess-report, ticket 15)', () => {
+  let app: INestApplicationContext | undefined;
+
+  afterEach(async () => {
+    await app?.close();
+  });
+
+  async function createContext(): Promise<{
+    projects: ProjectsService;
+    reportIntake: ReportIntakeService;
+    processing: ReportProcessingService;
+    queue: ReportQueueService;
+    prisma: PrismaService;
+  }> {
+    const config = loadConfig({ DATABASE_URL: await createTestDatabase() });
+    const context = await NestFactory.createApplicationContext(AppModule.forRoot(config), {
+      logger: false,
+    });
+    app = context;
+    return {
+      projects: context.get(ProjectsService),
+      reportIntake: context.get(ReportIntakeService),
+      processing: context.get(ReportProcessingService),
+      queue: context.get(ReportQueueService),
+      prisma: context.get(PrismaService),
+    };
+  }
+
+  it('AC-32: reprocess-report returns a failed Report to pending, and it is processed again', async () => {
+    const { projects, reportIntake, processing, queue, prisma } = await createContext();
+    const { project } = await projects.create('web-app');
+    const { report: submitted } = await reportIntake.submit({
+      project,
+      commitSha: SOME_COMMIT,
+      metadata: {},
+      body: Buffer.from(FOUR_CASE_REPORT),
+    });
+    // Simulate a Report that failed after exhausting its attempts (FR-19).
+    await prisma.report.update({
+      where: { id: submitted.id },
+      data: { processingState: 'failed', processingAttempts: 3, error: 'boom', claimedAt: null },
+    });
+
+    await queue.requeue(submitted.id);
+
+    const requeued = await prisma.report.findUniqueOrThrow({ where: { id: submitted.id } });
+    expect(requeued.processingState).toBe('pending');
+    expect(requeued.processingAttempts).toBe(0);
+    expect(requeued.error).toBeNull();
+
+    const didWork = await processing.processNext(new Date());
+    expect(didWork).toBe(true);
+    const report = await prisma.report.findUniqueOrThrow({ where: { id: submitted.id } });
+    expect(report.processingState).toBe('processed');
+  });
+
+  it('AC-32: reprocessing an already-processed Report returns it to pending without changing its Outcome count (FR-18)', async () => {
+    const { projects, reportIntake, processing, queue, prisma } = await createContext();
+    const { project } = await projects.create('web-app');
+    const { report: submitted } = await reportIntake.submit({
+      project,
+      commitSha: SOME_COMMIT,
+      metadata: {},
+      body: Buffer.from(FOUR_CASE_REPORT),
+    });
+    await processing.processNext(new Date());
+    const outcomesBefore = await prisma.outcome.findMany({ where: { reportId: submitted.id } });
+    expect(outcomesBefore).toHaveLength(4);
+
+    await queue.requeue(submitted.id);
+    const requeued = await prisma.report.findUniqueOrThrow({ where: { id: submitted.id } });
+    expect(requeued.processingState).toBe('pending');
+
+    await processing.processNext(new Date());
+    const report = await prisma.report.findUniqueOrThrow({ where: { id: submitted.id } });
+    expect(report.processingState).toBe('processed');
+    const outcomesAfter = await prisma.outcome.findMany({ where: { reportId: submitted.id } });
+    expect(outcomesAfter).toHaveLength(4);
+  });
+
+  it('reprocess-report rejects a pending Report', async () => {
+    const { projects, reportIntake, queue } = await createContext();
+    const { project } = await projects.create('web-app');
+    const { report: submitted } = await reportIntake.submit({
+      project,
+      commitSha: SOME_COMMIT,
+      metadata: {},
+      body: Buffer.from(FOUR_CASE_REPORT),
+    });
+
+    await expect(queue.requeue(submitted.id)).rejects.toThrow(ReportNotReprocessableError);
+  });
+
+  it('reprocess-report rejects an unknown Report ID', async () => {
+    const { queue } = await createContext();
+
+    await expect(queue.requeue('00000000-0000-0000-0000-000000000000')).rejects.toThrow(
+      ReportNotFoundError,
+    );
   });
 });

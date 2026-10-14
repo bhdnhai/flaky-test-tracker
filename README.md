@@ -33,6 +33,8 @@ docker compose exec api node dist/cli.js create-project web-app
 # ftt_<the Upload Token, shown only now>
 
 docker compose exec api node dist/cli.js rotate-token web-app   # issues a new token; the old one stops working
+
+docker compose exec api node dist/cli.js reprocess-report <reportId>   # processed/failed -> pending; re-processed on the next worker pass
 ```
 
 CI submits a Report with that token and the Commit it was produced from:
