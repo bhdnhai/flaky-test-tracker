@@ -236,20 +236,23 @@ describe('POST /api/v1/reports', () => {
       'a DOCTYPE with a SYSTEM external entity',
       '<!DOCTYPE x [<!ENTITY e SYSTEM "file:///etc/passwd">]><testsuite>&e;</testsuite>',
     ],
-  ])('AC-09, NFR-07: rejects %s with 422 MALFORMED_REPORT, storing nothing', async (_label, xml) => {
-    const { server, projects, prisma } = await createContext();
-    const { token } = await projects.create('web-app');
+  ])(
+    'AC-09, NFR-07: rejects %s with 422 MALFORMED_REPORT, storing nothing',
+    async (_label, xml) => {
+      const { server, projects, prisma } = await createContext();
+      const { token } = await projects.create('web-app');
 
-    const res = await request(server)
-      .post(`/api/v1/reports?commit=${SOME_COMMIT}`)
-      .set('Authorization', `Bearer ${token}`)
-      .set('Content-Type', 'application/xml')
-      .send(xml);
+      const res = await request(server)
+        .post(`/api/v1/reports?commit=${SOME_COMMIT}`)
+        .set('Authorization', `Bearer ${token}`)
+        .set('Content-Type', 'application/xml')
+        .send(xml);
 
-    expect(res.status).toBe(422);
-    expect(errorEnvelopeSchema.parse(res.body).error.code).toBe('MALFORMED_REPORT');
-    expect(await prisma.report.count()).toBe(0);
-  });
+      expect(res.status).toBe(422);
+      expect(errorEnvelopeSchema.parse(res.body).error.code).toBe('MALFORMED_REPORT');
+      expect(await prisma.report.count()).toBe(0);
+    },
+  );
 
   it('AC-10: resubmitting the identical body for the same Commit is a safe no-op: 200, the original id, duplicate: true, one Report', async () => {
     const { server, projects, prisma } = await createContext();

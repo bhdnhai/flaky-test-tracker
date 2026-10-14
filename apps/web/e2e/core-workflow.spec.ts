@@ -30,7 +30,8 @@ test('AC-23, AC-25, AC-26: full core workflow — Projects → Flaky Tests → s
     '<testsuite name="x"><testcase classname="report ingestion" name="parses" /></testsuite>';
   await submitXml(page, baseURL, webAppToken, 'd'.repeat(40), ingestXml);
 
-  const payPassing = '<testsuite name="x"><testcase classname="checkout" name="pays" /></testsuite>';
+  const payPassing =
+    '<testsuite name="x"><testcase classname="checkout" name="pays" /></testsuite>';
   const payFailing =
     '<testsuite name="x"><testcase classname="checkout" name="pays"><failure message="boom">boom</failure></testcase></testsuite>';
   // Two disagreeing Commits give "checkout > pays" exactly 2 Flakes, both inside the 14-day window.

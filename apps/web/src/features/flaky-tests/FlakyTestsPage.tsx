@@ -89,7 +89,9 @@ export function FlakyTestsPage() {
       ) : flakyTestsQuery.isError ? (
         <Typography color="error">Could not load Flaky Tests.</Typography>
       ) : flakyTestsQuery.data.items.length === 0 ? (
-        <Typography sx={{ mb: 2 }}>No Flaky Tests in the last {flakyTestsQuery.data.windowDays} days.</Typography>
+        <Typography sx={{ mb: 2 }}>
+          No Flaky Tests in the last {flakyTestsQuery.data.windowDays} days.
+        </Typography>
       ) : (
         <TableContainer sx={{ mb: 2 }}>
           <Table size="small">

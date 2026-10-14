@@ -76,7 +76,9 @@ function toDetailResponse(detail: TestDetail): TestDetailResponse {
   };
 }
 
-function toOutcome(outcome: TestDetailOutcome): TestDetailResponse['history'][number]['outcomes'][number] {
+function toOutcome(
+  outcome: TestDetailOutcome,
+): TestDetailResponse['history'][number]['outcomes'][number] {
   return {
     result: outcome.result,
     failureMessage: outcome.failureMessage,

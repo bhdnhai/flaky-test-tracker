@@ -18,7 +18,9 @@ export interface HttpTestContext {
  * Boots the HTTP app against a fresh, isolated database for one test. Call `app.close()` after.
  * `loggerStream` captures pino's output instead of writing it to stdout (ticket 10).
  */
-export async function createHttpTestContext(loggerStream?: DestinationStream): Promise<HttpTestContext> {
+export async function createHttpTestContext(
+  loggerStream?: DestinationStream,
+): Promise<HttpTestContext> {
   const config = loadConfig({ DATABASE_URL: await createTestDatabase() });
   const app = await createApp(config, loggerStream);
   await app.init();

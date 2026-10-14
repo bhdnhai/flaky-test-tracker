@@ -138,7 +138,10 @@ describe('interpret', () => {
 
     expect(cases).toEqual([]);
     expect(collisions).toEqual([
-      { classname: 'report ingestion is sometimes flaky', name: 'report ingestion is sometimes flaky' },
+      {
+        classname: 'report ingestion is sometimes flaky',
+        name: 'report ingestion is sometimes flaky',
+      },
     ]);
   });
 

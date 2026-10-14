@@ -10,14 +10,18 @@ function expectMalformed(xml: string): void {
 describe('xmlPreCheck', () => {
   it('AC-09: accepts a well-formed <testsuite> root', () => {
     expect(() =>
-      xmlPreCheck(Buffer.from('<testsuite name="x"><testcase classname="C" name="t" /></testsuite>')),
+      xmlPreCheck(
+        Buffer.from('<testsuite name="x"><testcase classname="C" name="t" /></testsuite>'),
+      ),
     ).not.toThrow();
   });
 
   it('AC-09: accepts a well-formed <testsuites> root', () => {
     expect(() =>
       xmlPreCheck(
-        Buffer.from('<testsuites><testsuite name="x"><testcase classname="C" name="t" /></testsuite></testsuites>'),
+        Buffer.from(
+          '<testsuites><testsuite name="x"><testcase classname="C" name="t" /></testsuite></testsuites>',
+        ),
       ),
     ).not.toThrow();
   });

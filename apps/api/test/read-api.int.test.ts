@@ -206,9 +206,7 @@ describe('Read API: Test search and detail (FR-24, FR-25, FR-28, FR-29)', () => 
       name: 'parses',
     });
 
-    const res = await request(server).get(
-      `/api/v1/projects/${project.id}/tests?search=INGEST`,
-    );
+    const res = await request(server).get(`/api/v1/projects/${project.id}/tests?search=INGEST`);
 
     expect(res.status).toBe(200);
     const body = testSearchResponseSchema.parse(res.body);
