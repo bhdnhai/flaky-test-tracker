@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Implements | [SRS v1.6](02-srs.md) |
+| Implements | [SRS v1.7](02-srs.md) |
 | Glossary | [CONTEXT.md](../CONTEXT.md) |
 | Decisions | [ADR-0001 … ADR-0013](adr/) |
 

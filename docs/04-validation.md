@@ -12,7 +12,7 @@
 
 1. Four dashboard and logging details are incomplete: FR-29 per-Commit counts, FR-30 Collision text, NFR-10 state-change logging, FR-24 wildcard escaping.
 2. Some checks need a real GitHub run, and this repository has no remote: AC-31 and AC-39 in CI.
-3. Some edge cases fail: `runAttempt` overflow, the NFR-04 timing wording, a token in the dogfood job's log.
+3. Some edge cases fail: `runAttempt` overflow, the NFR-04 timing wording (resolved in SRS v1.7), a token in the dogfood job's log.
 
 ---
 
@@ -84,7 +84,7 @@ Test paths are relative to the repository root. "int" = integration against real
 | NFR-01 | ✅ | `load/k6-submit.js` via `npm run perf:load` (AC-34) | Measured once (ticket 12): p95 ≈ **79 ms** against < 300 ms, 0 non-2xx in 601 requests. |
 | NFR-02 | ✅ | `load/processing.mjs` via `npm run perf:processing` (AC-35) | p95 ≈ **876 ms** against < 5 s, 20 submissions. |
 | NFR-03 | ✅ | `load/seed-reads.mjs` via `npm run perf:reads` (AC-36) | p95 ≈ **116 / 22 / 7 ms** (Flaky Tests / search / detail) against < 500 ms. |
-| NFR-04 | ⚠️ | `apps/api/test/report-processing.int.test.ts` (AC-16, AC-17, with a test clock) | Implemented as SRS §8 says ("claim older than 60 s"), with the sweep every 10 s. The worst case is about 70 s, against NFR-04's "within 60 s". The SRS contradicts itself (§4.1). |
+| NFR-04 | ✅ | `apps/api/test/report-processing.int.test.ts` (AC-16, AC-17, with a test clock) | Implemented as SRS §8 says ("claim older than 60 s"), with the sweep every 10 s, so the worst case is about 70 s. The SRS contradicted itself (§4.1); resolved after validation in SRS v1.7 by relaxing NFR-04 to "within 70 s". |
 | NFR-05 | ✅ | `apps/api/test/report-processing.int.test.ts` (AC-13, AC-18) | |
 | NFR-06 | ⚠️ | `apps/api/src/projects/token.test.ts`, `apps/api/test/report-intake.int.test.ts`, `apps/api/test/observability.int.test.ts` (AC-05) | The product meets it. The `dogfood` CI job passes its runtime token through an unmasked step output into `with: token:`, so GitHub would print it in the job log (D-05). That token belongs to a throwaway in-job deployment. |
 | NFR-07 | ✅ | `apps/api/src/report-intake/xml-pre-check.test.ts`, `apps/api/test/report-intake.int.test.ts` (AC-09) | Predefined entities still decode (SRS v1.4). |
@@ -169,14 +169,15 @@ Nothing is ⏭: every Should and Could requirement (FR-20, FR-34, FR-35) was bui
 | v1.4 | Predefined XML entities decode. A bare `<testsuite>` root is accepted. | Ticket 03: Vitest's `&gt;` in names; zero Outcomes from a real Report shape | [ticket 03](../.scratch/iteration-1/issues/03-process-reports-into-outcomes.md), design §7 |
 | v1.5 | nginx `client_max_body_size 10m`; A10 confirmed | Ticket 12: k6 got nginx's `413` on 1 MB Reports | [ticket 12](../.scratch/iteration-1/issues/12-performance-verification.md), design §10 |
 | v1.6 | Traceability matrix synced; §13 assumption statuses updated; NFR-04 / §8 inconsistency recorded (below) | This validation | SRS §13, §16, §18 |
+| v1.7 | NFR-04 and AC-17 relaxed to "within 70 s" | Decision after validation: the 60 s claim expiry plus the 10 s sweep can't meet 60 s; a 10 s difference has no user impact | SRS §6, §15, §18 |
 
 Deviations that needed no document change: Nest's global body parser turned off (ticket 07, completes design §5); the CLI keeps plain stdout because `demo.sh` parses it (ticket 10); Prisma `createMany({skipDuplicates})` instead of hand-written `ON CONFLICT` (ticket 03).
 
-**SRS inconsistency found by this review (not resolved):** NFR-04 says a killed worker's Report "returns to `pending` within 60 s". §8 says it returns once the "claim [is] older than 60 s". The code follows §8, so the worst case is about 70 s (60 s plus the 10 s sweep). Next iteration should decide: either relax NFR-04 to "about 70 s", or expire claims at 50 s.
+**SRS inconsistency found by this review (resolved after validation in SRS v1.7: NFR-04 relaxed to "within 70 s"):** NFR-04 says a killed worker's Report "returns to `pending` within 60 s". §8 says it returns once the "claim [is] older than 60 s". The code follows §8, so the worst case is about 70 s (60 s plus the 10 s sweep). Decided: relax NFR-04 rather than expire claims earlier.
 
 ## 5. What remains
 
-- **Partly met (§2):** FR-08, FR-24, FR-29, FR-30, FR-34, NFR-04, NFR-06 (CI only), NFR-10, NFR-12/AC-39 (CI run), AC-26 (flaky test), AC-31.
+- **Partly met (§2):** FR-08, FR-24, FR-29, FR-30, FR-34, NFR-06 (CI only), NFR-10, NFR-12/AC-39 (CI run), AC-26 (flaky test), AC-31.
 - **Evidence only a real GitHub remote can give:** AC-31 and A4 (push, then "Re-run failed jobs"), AC-39 in CI, and A8 on GitHub runners.
 - **Assumptions that need real teams:** A1, A3, A6, A7, A9.
 
@@ -186,7 +187,7 @@ Deviations that needed no document change: Nest's global body parser turned off 
 2. **Close the ⚠️ items in the dashboard:** Collision warning text on the Reports page (also unblocks A9); per-Commit counts on Test detail; clear `error` on success.
 3. **Run on a real GitHub remote** and record AC-31, A4, A8 and AC-39. This is cheap and turns four "unknown" or ⚠️ items into evidence.
 4. **Stabilise `reports.spec.ts`**: assert `pending` or `processed`. A flaky test in a flaky-test tracker is the best possible dogfood candidate.
-5. **NFR-10 state-change logging** completed, plus resolving NFR-04 against §8.
+5. **NFR-10 state-change logging** completed.
 6. An explicit "fixed" state for a Flaky Test (problem definition open questions).
 7. Retention for raw content (non-goal 10) once database size matters.
 
