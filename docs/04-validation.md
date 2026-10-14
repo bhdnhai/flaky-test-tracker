@@ -153,6 +153,24 @@ No SRS or design change was needed for tickets 18, 19 or 20 — each was a defec
 
 ## 7. Technical debt
 
+### 7.1 Shortcuts accepted on purpose
+
+Each was a decision made before or during implementation to keep iteration 1 small, not a defect found later. Each has a recorded trigger for revisiting it.
+
+| Shortcut | Why it was acceptable now | Revisit when | Recorded in |
+|---|---|---|---|
+| No login on the dashboard; the network is the boundary | No action differs between people; read-only data | A6 is refuted by a security review | ADR-0002, non-goal 2 |
+| Projects and tokens managed only through a CLI inside the `api` container | Keeps privileged actions off the no-login UI | More than a handful of Projects | Non-goal 11, SRS §9.3 |
+| No rate limiting in the app; production would rely on a load-balancer rule | Only the token-authenticated submission route would be public | The deployment is exposed | ADR-0002 addendum, §8 |
+| Raw Reports stored forever as `bytea` in PostgreSQL | Atomic with the Report row, no extra service; about 1 GB/month at expected volume | Database size affects backups | ADR-0012, non-goal 10 |
+| The `report` table is the job queue, polled every 500 ms by one worker | One source of truth for processing state; `SKIP LOCKED` already allows more workers | Volume needs a broker | ADR-0011 |
+| Failure messages truncated to 8 KB but not redacted | Redaction rules need real data to get right | Before any team with sensitive output adopts it | FR-16, SRS §10 |
+| Flakes computed on every read, with no materialised table | Measured p95 116 ms at 10k Tests / 200k Outcomes | Reads approach NFR-03's 500 ms | A10, ADR-0008 |
+| Performance measured once, on one laptop | Headroom is at least 4× on every target | Before production sizing | §2.2, §8 |
+| No per-ticket AI review pass from ticket 04 to 16, to save tokens | Time budget; one review at the end instead | Always: see the retrospective | [AI usage](06-ai-usage.md) |
+
+### 7.2 Debt found by review
+
 From the ticket 17 code review (Spec and Standards axes, parallel sub-agents, over `945cc04..0f93e66`), re-verified and extended by this review (same two-axis method, over `945cc04..8fb03da`, current HEAD). Nothing here was fixed by running this review; fixes happened in the numbered tickets below, before this review ran.
 
 | ID | Debt | Where | Axis |
