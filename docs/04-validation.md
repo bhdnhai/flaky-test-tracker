@@ -90,7 +90,7 @@ Test paths are relative to the repository root. "int" = integration against real
 | NFR-09 | ✅ | `apps/web/e2e/accessibility.spec.ts` (AC-37) | |
 | NFR-10 | ⚠️ | `apps/api/test/observability.int.test.ts` (AC-38) | Request IDs and JSON logs are solid. State-change lines are still incomplete (D-07, ticket 21 not implemented): the claim `pending→processing` transition during normal processing *is* logged (confirmed in this review's integration-test run, which shows `"from":null,"to":"pending"` on intake), but a failed attempt always logs `to: 'processing-failed'` (`report-processing.service.ts:96`) — not a real `processingState` value, and it doesn't distinguish "retrying → pending" from "exhausted → failed". Claim expiry (`releaseExpired`) logs only an aggregate count, not one line per Report. `reprocess-report` (`requeue`) logs nothing at all — `report-queue.ts` has no `Logger` in it. |
 | NFR-11 | ✅ | `apps/api/test/health.int.test.ts` (AC-38) | Re-verified by hand this review: `GET /health` returns `200 {"status":"ok"}` with the database up, and `503` within seconds of `docker compose stop db`. |
-| NFR-12 | ⚠️ | `npm run lint`, `npm run typecheck`, `apps/api/vitest.config.ts` (90% threshold on `src/junit/**`) | Locally: 0 lint and type errors (re-run this review), JUnit module **100% lines, 90.5% branches**. AC-39 says "CI runs" these; `.github/workflows/ci.yml`'s jobs exist and are correctly configured but have still never run on GitHub (no remote). |
+| NFR-12 | ⚠️ | `npm run lint`, `npm run typecheck`, `apps/api/vitest.config.ts` (90% threshold on `src/junit/**`) | Locally: 0 lint and type errors (re-run this review), JUnit module **100% lines, 90.5% branches**. AC-39 says "CI runs" these; `.github/workflows/ci.yml`'s jobs have still never run on GitHub (no remote). A fresh-clone audit before submission showed they would have failed on the first push: `format:check` failed on 9 files, and `lint` failed with 670 errors because the gitignored Prisma client is generated only by `typecheck`, `build` and `test:integration`, which run after it. Both were fixed (`lint` now runs `prisma generate` first; Prettier applied) and re-run from a clean clone. |
 | NFR-13 | ✅ | `scripts/demo.sh`, `apps/web/e2e/reviewer-demo.spec.ts`, `apps/web/e2e/smoke.spec.ts` (AC-28) | Re-measured this review from a fully clean volume (`docker compose down -v` first): ~36 s total, well inside 5 minutes. |
 | NFR-14 | ✅ | `apps/web/e2e/test-search-and-detail.spec.ts`, `apps/web/e2e/core-workflow.spec.ts` (AC-23) | |
 
@@ -197,7 +197,8 @@ Run on 2026-10-14 at `8fb03da` (Apple M1, Node 22.23, Docker 27.4) — a fresh, 
 
 | Suite | Command | Result |
 |---|---|---|
-| Lint | `npm run lint` | 0 errors, 0 warnings |
+| Lint | `npm run lint` | 0 errors, 0 warnings. **Correction:** this held only on a working copy where the Prisma client had already been generated. A fresh clone gave 670 errors until `lint` was made to run `prisma generate` first |
+| Format | `npm run format:check` | Not run for this report originally. It failed on 9 files; fixed by applying Prettier |
 | Typecheck | `npm run typecheck` | 0 errors (contracts, api, web) |
 | Unit | `npm run test:unit` | **41 passed** (contracts 10, api 24, web 7). JUnit module coverage **100% lines, 90.5% branches** |
 | Integration | `npm run test:integration` | **70 passed** (7 files, Testcontainers PostgreSQL), plus the AC-30 action test ok |
