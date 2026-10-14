@@ -29,10 +29,10 @@ FR-08, FR-24, NFR-06, SRS §9.1 (no internals in error text), FR-33. Defects D-0
 
 ## Acceptance checks
 
-- [ ] Given `runAttempt=2147483648`, then `400 VALIDATION_ERROR` (D-04, extends **AC-07**).
-- [ ] Given Tests `a_b` and `axb`, when searching `a_b`, then only `a_b` is returned; searching `100%` matches only names containing `100%` (D-03, extends **AC-24**).
-- [ ] Given a Report that fails processing because of a database error, then its stored `error` contains no file path and no Prisma class name, and the full error appears in the worker log (D-06, extends **AC-13**).
-- [ ] Given branch `feat/ümlaut-тест`, when the composite action submits, then the Report's `branch` equals it exactly (D-08, extends **AC-30**).
+- [x] Given `runAttempt=2147483648`, then `400 VALIDATION_ERROR` (D-04, extends **AC-07**).
+- [x] Given Tests `a_b` and `axb`, when searching `a_b`, then only `a_b` is returned; searching `100%` matches only names containing `100%` (D-03, extends **AC-24**).
+- [x] Given a Report that fails processing because of a database error, then its stored `error` contains no file path and no Prisma class name, and the full error appears in the worker log (D-06, extends **AC-13**).
+- [x] Given branch `feat/ümlaut-тест`, when the composite action submits, then the Report's `branch` equals it exactly (D-08, extends **AC-30**).
 - [ ] The dogfood job masks the token before any use (D-05); review `scripts/dogfood.sh` and `ci.yml` (no GitHub run available yet; verified for real after the push).
 
 **How to verify by hand:**
@@ -53,11 +53,11 @@ FR-08, FR-24, NFR-06, SRS §9.1 (no internals in error text), FR-33. Defects D-0
 
 ## Definition of done
 
-- [ ] Each acceptance check above has a passing test, with the AC ID (or defect ID) in the test name.
-- [ ] `npm run lint`, `npm run typecheck`, unit and integration tests green; E2E green if the dashboard or demo is touched.
-- [ ] `docs/04-validation.md`: the rows for the requirements and defects listed under "Requirements covered" updated to their new status (✅ where fixed), with evidence; each fixed defect ID marked fixed in the debt table (§7) with this ticket number. Keep the original finding text visible.
-- [ ] `docs/02-srs.md` traceability matrix updated if test files changed; an SRS history row only if a requirement changed.
-- [ ] README updated if commands changed.
+- [x] Each acceptance check above has a passing test, with the AC ID (or defect ID) in the test name.
+- [x] `npm run lint`, `npm run typecheck`, unit and integration tests green; E2E green if the dashboard or demo is touched.
+- [x] `docs/04-validation.md`: the rows for the requirements and defects listed under "Requirements covered" updated to their new status (✅ where fixed), with evidence; each fixed defect ID marked fixed in the debt table (§7) with this ticket number. Keep the original finding text visible.
+- [x] `docs/02-srs.md` traceability matrix updated if test files changed; an SRS history row only if a requirement changed.
+- [x] README updated if commands changed.
 - [ ] One focused commit, Conventional Commits, referencing this ticket.
 
 ## Comments
@@ -66,3 +66,4 @@ FR-08, FR-24, NFR-06, SRS §9.1 (no internals in error text), FR-33. Defects D-0
 - Tests: contracts `AC-07 / D-04`; integration `AC-24 / D-03`; the AC-13 test now asserts no paths or ORM text in the stored error (D-06); the AC-30 shell test uses a non-ASCII branch (D-08).
 - D-05 is reviewed but not yet run on GitHub (no remote).
 - Deviation: committed together with ticket 19.
+- Checkboxes ticked during the pre-submission audit (2026-10-14) after re-running lint, typecheck, unit, integration (70/70, plus the AC-30 shell test) and E2E (13/13) at HEAD and checking the validation rows. Left unticked: D-05 (needs a GitHub run) and one focused commit (see the deviation above).

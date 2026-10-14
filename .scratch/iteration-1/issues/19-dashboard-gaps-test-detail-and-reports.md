@@ -27,10 +27,10 @@ FR-29 (with FR-25's per-Commit counts), FR-30 (with FR-17's warning text and UC-
 
 ## Acceptance checks
 
-- [ ] Given a Test with Outcomes on Commit C (2 passed, 1 failed, 1 skipped), when its detail is opened, then C's row shows 2 / 1 / 1. (FR-29, D-01)
-- [ ] **AC-14**'s Report, when shown on the Reports page, shows the colliding identity and the text `includeProjectInTestName`. (FR-30, D-02)
-- [ ] Given a Report whose first processing attempt failed and whose second succeeded, then the API returns `error: null` for it and the Reports page shows no error. (FR-30, D-02)
-- [ ] **AC-37** still holds on both pages (axe: 0 serious/critical; keyboard access to the warning).
+- [x] Given a Test with Outcomes on Commit C (2 passed, 1 failed, 1 skipped), when its detail is opened, then C's row shows 2 / 1 / 1. (FR-29, D-01)
+- [x] **AC-14**'s Report, when shown on the Reports page, shows the colliding identity and the text `includeProjectInTestName`. (FR-30, D-02)
+- [x] Given a Report whose first processing attempt failed and whose second succeeded, then the API returns `error: null` for it and the Reports page shows no error. (FR-30, D-02)
+- [x] **AC-37** still holds on both pages (axe: 0 serious/critical; keyboard access to the warning).
 
 **How to verify by hand:**
 
@@ -49,11 +49,11 @@ FR-29 (with FR-25's per-Commit counts), FR-30 (with FR-17's warning text and UC-
 
 ## Definition of done
 
-- [ ] Each acceptance check above has a passing test, with the AC ID (or defect ID) in the test name.
-- [ ] `npm run lint`, `npm run typecheck`, unit and integration tests green; E2E green if the dashboard or demo is touched.
-- [ ] `docs/04-validation.md`: the rows for the requirements and defects listed under "Requirements covered" updated to their new status (✅ where fixed), with evidence; each fixed defect ID marked fixed in the debt table (§7) with this ticket number. Keep the original finding text visible.
-- [ ] `docs/02-srs.md` traceability matrix updated if test files changed; an SRS history row only if a requirement changed.
-- [ ] README updated if commands changed.
+- [x] Each acceptance check above has a passing test, with the AC ID (or defect ID) in the test name.
+- [x] `npm run lint`, `npm run typecheck`, unit and integration tests green; E2E green if the dashboard or demo is touched.
+- [x] `docs/04-validation.md`: the rows for the requirements and defects listed under "Requirements covered" updated to their new status (✅ where fixed), with evidence; each fixed defect ID marked fixed in the debt table (§7) with this ticket number. Keep the original finding text visible.
+- [x] `docs/02-srs.md` traceability matrix updated if test files changed; an SRS history row only if a requirement changed.
+- [x] README updated if commands changed.
 - [ ] One focused commit, Conventional Commits, referencing this ticket.
 
 ## Comments
@@ -61,3 +61,4 @@ FR-29 (with FR-25's per-Commit counts), FR-30 (with FR-17's warning text and UC-
 - Built: per-Commit "N passed, N failed, N skipped" on Test detail (D-01); the Reports page lists Collision identities and the fix text (D-02); `complete()` clears a stale `error` (D-02). `collisionWarning` is now typed in the contracts and validated on the way out.
 - Tests: integration `FR-30 / D-02` in `report-processing.int.test.ts`; E2E assertions in `test-search-and-detail.spec.ts` and a new `FR-30 / D-02` Collision test in `reports.spec.ts`. 13/13 E2E, 70/70 integration.
 - Deviation: committed together with ticket 20 (both touch `packages/contracts/src/reports.ts`).
+- Checkboxes ticked during the pre-submission audit (2026-10-14) after re-running lint, typecheck, unit, integration (70/70) and E2E (13/13) at HEAD and checking the validation rows. Left unticked: one focused commit (see the deviation above).
