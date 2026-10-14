@@ -24,6 +24,17 @@ Source: [spec](spec.md), [SRS v1.1](../../docs/02-srs.md), [design](../../docs/0
 | 16 | [Playwright demo fixtures](issues/16-playwright-demo-fixtures.md) | stretch | 06 | Demo |
 | 17 | [Validation and retrospective docs](issues/17-validation-and-retrospective-docs.md) | must | 01–13 (14–16 if done) | Close |
 
+### Post-validation fixes (from `docs/04-validation.md`)
+
+| # | Ticket | Priority | Blocked by | Fixes |
+|---|---|---|---|---|
+| 18 | [Stabilise the flaky Reports page E2E test](issues/18-stabilise-reports-e2e.md) | must | 17 | D-09 (AC-26) |
+| 19 | [Dashboard gaps: Test detail counts; Reports page Collision text and stale errors](issues/19-dashboard-gaps-test-detail-and-reports.md) | must | 17 | D-01, D-02 (FR-29, FR-30) |
+| 20 | [Security and validation fixes](issues/20-security-and-validation-fixes.md) | must | 17 | D-03, D-04, D-05, D-06, D-08 |
+| 21 | [Complete state-change logging and worker resilience](issues/21-state-change-logging-and-worker-resilience.md) | stretch | 17 | D-07, D-10 |
+
+18–21 don't depend on each other. Standards debt D-11 … D-14 stays recorded in the validation report and is not scheduled.
+
 Suggested sequence: 01 → 02 → 03 → 04 → 05 → 06, then 07–13 in any order (they're independent of each other), stretch tickets if time allows, then 17. If time runs out after 13, the Must set is a complete, demoable product.
 
 ```mermaid
