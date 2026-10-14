@@ -6,7 +6,7 @@
 | Status | Iteration 1 implemented; validated in [docs/04-validation.md](04-validation.md) |
 | Problem definition | [docs/01-problem-definition.md](01-problem-definition.md) |
 | Glossary | [CONTEXT.md](../CONTEXT.md) |
-| Decisions | [docs/adr/](adr/) (ADR-0001 … ADR-0005) |
+| Decisions | [docs/adr/](adr/) (ADR-0001 … ADR-0005 from the problem definition; ADR-0006 … ADR-0013 from the design) |
 
 Terms in **bold** are glossary terms and are used with exactly that meaning. Requirement keywords: **must** = required for iteration 1 to be accepted.
 
@@ -412,7 +412,7 @@ Product non-goals are listed with reasons in the [problem definition](01-problem
 | HTTPS termination, backups, high availability | Deployment concerns outside the local run |
 | Token expiry | Rotation covers the leak case (FR-03) |
 | Internationalisation; layouts optimised for mobile | Users are engineers at a desk; the pages must still be usable at narrow widths |
-| How GitHub-hosted runners reach an internal deployment | **Open question for the design** (public submission-only endpoint vs. self-hosted runners) |
+| How GitHub-hosted runners reach an internal deployment | Was an open question for the design; resolved in the [ADR-0002 addendum](adr/0002-upload-token-auth-no-user-login.md#addendum-2026-10-13-reachability-from-github-hosted-runners): only the submission route is public, or self-hosted runners stay internal |
 
 ## 15. Acceptance criteria
 

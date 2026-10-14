@@ -5,7 +5,7 @@ About two working days, 2026-10-12 to 2026-10-14, plus a second validation pass 
 ## What went well
 
 - **The prototype paid for itself before any code existed.** Three runners' real JUnit output, read before the SRS, refuted A2 ("`classname` + `name` is unique"). It also showed that the obvious fix of adding `hostname` to identity would have broken Vitest on every CI runner. The result was ADR-0005 and Collision detection: a requirement nobody would have written from first principles.
-- **Genuinely flaky fixtures instead of a scripted demo.** The completion-order race gives about 50% failure on any machine, so the demo shows the real product on real evidence in under 30 seconds. Rejecting the first, simulated demo design was the single most valuable "no" of the iteration.
+- **Genuinely flaky fixtures instead of a scripted demo.** The completion-order race gives about 50% failure on any machine, so the demo shows the real product on real evidence in well under a minute (about 36 s from a cold volume, including `docker compose up --build`). Rejecting the first, simulated demo design was the single most valuable "no" of the iteration.
 - **Testing against real PostgreSQL.** Flake detection, `SKIP LOCKED` claiming, the duplicate race and idempotency are all SQL behaviour. Testcontainers and a test clock made them fast, deterministic tests with no sleeps (AC-17, AC-22).
 - **Running things instead of trusting them.** Three of the five SRS revisions (v1.2, v1.4, v1.5) came from executing something: package engine fields (Node ≥ 22.22), real reporter XML (`&gt;` in names), a leftover Report shape (zero Outcomes), and k6 (nginx's 1 MB limit). None of these was visible on paper. The other two came from design work (v1.1) and code review (v1.3).
 - **Thin vertical tickets.** The core loop was demoable at ticket 05 and the reviewer path at 06. Everything after that was hardening that could have been cut without losing the product.
@@ -39,7 +39,7 @@ The full list, in value order, is in [validation §6](04-validation.md#6-next-it
 
 ## Numbers
 
-- 21 tickets total: 16 feature, 1 docs, 4 post-validation fixes; 19 commits (two pairs of tickets shared a commit because they touched the same file).
+- 21 tickets total: 16 feature, 1 docs, 4 post-validation fixes. 20 implemented in 19 commits (tickets 19 and 20 shared one because both touched the shared contracts file); ticket 21 not implemented.
 - 35/35 FRs built; 0 ❌. At first validation: 12 ⚠️. After tickets 18–20: 3 ⚠️ remain (NFR-10/D-07, FR-34/AC-31, NFR-12/AC-39 in CI) plus one new minor finding (D-17, a terminology label) from the second pass, since fixed.
 - 41 unit, 70 integration and 13 E2E tests, all green on a fresh run; JUnit module at 100% line, 90.5% branch coverage.
 - p95 (ticket 12, not re-measured since): submission 79 ms (target < 300), processing 0.9 s (< 5 s), reads ≤ 116 ms (< 500).

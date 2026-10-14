@@ -16,7 +16,7 @@
 
 ## 1. Implemented slice and demo path
 
-- **Built:** all 35 FRs (Must, Should and Could), across 21 tickets (16 feature tickets, 1 docs ticket, 4 post-validation fix tickets), one commit each except 19+20 (combined — see §4).
+- **Built:** all 35 FRs (Must, Should and Could), across 21 planned tickets (16 feature, 1 docs, 4 post-validation fixes). 20 were implemented, in 19 commits: tickets 19 and 20 share one because both change `packages/contracts/src/reports.ts`. Ticket 21 was not implemented (§5).
 - **Stack:** NestJS `api` + `worker` + CLI over PostgreSQL 18, a React/MUI dashboard behind nginx, and shared Zod contracts. It runs with `docker compose`.
 
 The reviewer path (UC-5, NFR-13):

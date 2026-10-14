@@ -128,9 +128,9 @@ Resolved in [the SRS](02-srs.md) v1.0:
 - Failure messages: truncated to 8 KB and stored without redaction; this is a recorded security risk (FR-16, SRS §10).
 - When a Flaky Test stops being flaky: it drops out of the windowed ranking. An explicit "fixed" state is iteration 2.
 
-Still open, for the design step:
-- How does CI submit: a documented `curl` step, or a GitHub Action in this repository?
-- How do GitHub-hosted runners reach an internal deployment: a public submission-only endpoint, or self-hosted runners?
+Left open for the design step, and resolved there:
+- How does CI submit: a documented `curl` step, or a GitHub Action in this repository? **Both**: a composite action in `.github/actions/submit-report` that wraps the documented `curl` call (FR-33, [design §3](03-design.md#3-repository-layout)).
+- How do GitHub-hosted runners reach an internal deployment: a public submission-only endpoint, or self-hosted runners? **Either**: production exposes only `POST /api/v1/reports` publicly, and self-hosted runners can stay fully internal ([ADR-0002 addendum](adr/0002-upload-token-auth-no-user-login.md#addendum-2026-10-13-reachability-from-github-hosted-runners)).
 
 ## Success criteria
 
