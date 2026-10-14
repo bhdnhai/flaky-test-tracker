@@ -288,6 +288,27 @@ describe('FlakeAnalysisService.search (FR-24)', () => {
     expect(flakyResults).toMatchObject([{ name: 'pays', totalFlakes: 2 }]);
   });
 
+  it('AC-24 / D-03: % and _ in the query match literally, not as LIKE wildcards', async () => {
+    const { projects, prisma, flakeAnalysis } = await createContext();
+    const { project } = await projects.create('web-app');
+    const now = new Date('2026-10-01T00:00:00Z');
+    for (const name of ['a_b', 'axb', 'covers 100% of cases', 'covers 1000 cases']) {
+      await seedOutcome(prisma, {
+        projectId: project.id,
+        classname: 'C',
+        name,
+        commitSha: 'a'.repeat(40),
+        result: 'passed',
+        receivedAt: now,
+      });
+    }
+
+    expect((await flakeAnalysis.search(project.id, 'a_b')).map((r) => r.name)).toEqual(['a_b']);
+    expect((await flakeAnalysis.search(project.id, '100%')).map((r) => r.name)).toEqual([
+      'covers 100% of cases',
+    ]);
+  });
+
   it('FR-24: results are sorted by name and capped at 50', async () => {
     const { projects, prisma, flakeAnalysis } = await createContext();
     const { project } = await projects.create('web-app');

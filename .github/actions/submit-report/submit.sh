@@ -8,16 +8,22 @@ set -euo pipefail
 : "${INPUT_FILE:?submit-report: missing 'file' input}"
 : "${GITHUB_SHA:?submit-report: GITHUB_SHA is not set}"
 
+# Percent-encodes every byte outside the unreserved set. Works on bytes, not characters,
+# so multi-byte UTF-8 (e.g. a branch named "feat/ümlaut") encodes correctly (D-08).
 urlencode() {
-  local string="$1" length i c
-  length="${#string}"
-  for ((i = 0; i < length; i++)); do
-    c="${string:i:1}"
-    case "$c" in
-      [a-zA-Z0-9.~_-]) printf '%s' "$c" ;;
-      *) printf '%%%02X' "'$c" ;;
-    esac
+  local hex byte out=""
+  for hex in $(printf '%s' "$1" | od -An -v -tx1); do
+    byte=$((16#$hex))
+    if { [ "$byte" -ge 48 ] && [ "$byte" -le 57 ]; } ||
+      { [ "$byte" -ge 65 ] && [ "$byte" -le 90 ]; } ||
+      { [ "$byte" -ge 97 ] && [ "$byte" -le 122 ]; } ||
+      [ "$byte" -eq 45 ] || [ "$byte" -eq 46 ] || [ "$byte" -eq 95 ] || [ "$byte" -eq 126 ]; then
+      out+="$(printf "\\$(printf '%03o' "$byte")")"
+    else
+      out+="%$(printf '%02X' "$byte")"
+    fi
   done
+  printf '%s' "$out"
 }
 
 query="commit=$(urlencode "${GITHUB_SHA}")"

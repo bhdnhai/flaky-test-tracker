@@ -131,14 +131,15 @@ export class FlakeAnalysisService {
    * Tests with no Flakes, sorted by name, capped at 50, each with its all-time Flake count.
    */
   async search(projectId: string, query: string): Promise<TestSearchRow[]> {
-    const pattern = `%${query}%`;
+    // `%`, `_` and `\` are literal text in a search, not LIKE wildcards (FR-24, D-03).
+    const pattern = `%${escapeLikePattern(query)}%`;
 
     const rows = await this.prisma.$queryRaw<unknown[]>`
       WITH "matched_tests" AS (
         SELECT "id", "classname", "name"
         FROM "test"
         WHERE "project_id" = ${projectId}
-          AND ("name" ILIKE ${pattern} OR "classname" ILIKE ${pattern})
+          AND ("name" ILIKE ${pattern} ESCAPE '\\' OR "classname" ILIKE ${pattern} ESCAPE '\\')
         ORDER BY "name" ASC
         LIMIT 50
       ),
@@ -264,4 +265,9 @@ export class FlakeAnalysisService {
       history,
     };
   }
+}
+
+/** Escapes LIKE metacharacters so the query matches literally (FR-24, D-03). */
+export function escapeLikePattern(query: string): string {
+  return query.replace(/[\\%_]/g, (char) => `\\${char}`);
 }

@@ -32,4 +32,6 @@ test('AC-23: typing a Test name into search and clicking the result opens its de
   await page.getByRole('link', { name: 'parses' }).click();
 
   await expect(page.getByText('No Flakes recorded')).toBeVisible();
+  // FR-29 / D-01: each Commit shows its per-Commit Outcome counts.
+  await expect(page.getByText('1 passed, 0 failed, 0 skipped')).toBeVisible();
 });

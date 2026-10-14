@@ -17,7 +17,8 @@ export const commitShaSchema = z
 export const submitReportMetadataSchema = z.object({
   branch: z.string().max(255).optional(),
   runId: z.string().max(64).optional(),
-  runAttempt: z.coerce.number().int().min(1).optional(),
+  // Upper bound = the database's int column (D-04): larger values are a 400, not a 500.
+  runAttempt: z.coerce.number().int().min(1).max(2_147_483_647).optional(),
   job: z.string().max(255).optional(),
 });
 export type SubmitReportMetadata = z.infer<typeof submitReportMetadataSchema>;
@@ -41,7 +42,13 @@ export const reportListItemSchema = z.object({
   sizeBytes: z.number().int(),
   processingState: processingStateSchema,
   error: z.string().nullable(),
-  collisionWarning: z.unknown().nullable(),
+  // FR-17 / FR-30: which identities collided and how to fix the reporter configuration.
+  collisionWarning: z
+    .object({
+      identities: z.array(z.object({ classname: z.string(), name: z.string() })),
+      message: z.string(),
+    })
+    .nullable(),
   receivedAt: z.iso.datetime(),
   processedAt: z.iso.datetime().nullable(),
 });

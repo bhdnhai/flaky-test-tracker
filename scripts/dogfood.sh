@@ -28,6 +28,8 @@ cmd_setup() {
   mkdir -p "$RUNS_DIR"
 
   : "${GITHUB_OUTPUT:?dogfood setup: GITHUB_OUTPUT is not set}"
+  # Mask before the token reaches any step output or input, so GitHub redacts it in logs (NFR-06, D-05).
+  echo "::add-mask::$TOKEN"
   {
     echo "token=$TOKEN"
     echo "project_id=$PROJECT_ID"

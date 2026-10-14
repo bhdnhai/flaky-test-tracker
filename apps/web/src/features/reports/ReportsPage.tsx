@@ -65,7 +65,24 @@ export function ReportsPage() {
                   <TableCell>{report.job ?? EMPTY_CELL}</TableCell>
                   <TableCell>{report.processingState}</TableCell>
                   <TableCell>{report.error ?? EMPTY_CELL}</TableCell>
-                  <TableCell>{report.collisionWarning ? 'Yes' : EMPTY_CELL}</TableCell>
+                  <TableCell>
+                    {report.collisionWarning ? (
+                      <>
+                        <Typography variant="body2" component="ul" sx={{ m: 0, pl: 2 }}>
+                          {report.collisionWarning.identities.map((identity) => (
+                            <li key={`${identity.classname}\u0000${identity.name}`}>
+                              {identity.classname} &gt; {identity.name}
+                            </li>
+                          ))}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {report.collisionWarning.message}
+                        </Typography>
+                      </>
+                    ) : (
+                      EMPTY_CELL
+                    )}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

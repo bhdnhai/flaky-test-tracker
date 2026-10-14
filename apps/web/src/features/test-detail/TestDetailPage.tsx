@@ -51,7 +51,8 @@ export function TestDetailPage() {
         history.map((commit) => (
           <TableContainer key={commit.commitSha} sx={{ mb: 2 }}>
             <Typography variant="subtitle1" component="h2">
-              Commit {commit.commitSha.slice(0, 7)} {commit.isFlake ? '(Flake)' : ''}
+              Commit {commit.commitSha.slice(0, 7)} {commit.isFlake ? '(Flake)' : ''} —{' '}
+              {commit.passed} passed, {commit.failed} failed, {commit.skipped} skipped
             </Typography>
             <Table size="small">
               <TableHead>

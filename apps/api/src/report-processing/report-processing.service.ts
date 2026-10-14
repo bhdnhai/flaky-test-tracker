@@ -19,7 +19,7 @@ function collisionWarningOf(collisions: CollidingIdentity[]): Prisma.InputJsonVa
   return {
     identities: collisions,
     message:
-      "These test cases share a classname + name with another case in this Report, so no Outcome was recorded for them. Make identities unique: for Playwright with multiple projects, set includeProjectInTestName: true; for jest-junit, set classNameTemplate to include {filepath}.",
+      'These test cases share a classname + name with another case in this Report, so no Outcome was recorded for them. Make identities unique: for Playwright with multiple projects, set includeProjectInTestName: true; for jest-junit, set classNameTemplate to include {filepath}.',
   } as unknown as Prisma.InputJsonValue;
 }
 
@@ -81,14 +81,21 @@ export class ReportProcessingService {
     } catch (error) {
       // A poison Report (parseable root, unreadable test cases) must not crash the
       // worker (NFR-05): the attempt is recorded and the Report retried or failed (FR-19).
-      const message = error instanceof Error ? error.message : String(error);
-      await this.queue.fail(claimed.id, message, claimed.processingAttempts, now);
+      // The stored error is shown on the dashboard, so it must not carry internals such as
+      // server paths or ORM details (SRS §9.1, D-06). The full error goes to the log only.
+      const detail = error instanceof Error ? (error.stack ?? error.message) : String(error);
+      await this.queue.fail(
+        claimed.id,
+        processingFailureMessage(error),
+        claimed.processingAttempts,
+        now,
+      );
       this.logger.log({
         reportId: claimed.id,
         from: 'pending',
         to: 'processing-failed',
         attempt: claimed.processingAttempts,
-        error: message,
+        error: detail,
         durationMs: Date.now() - startedAt,
       });
     }
@@ -135,4 +142,18 @@ async function upsertTests(
   });
 
   return new Map(tests.map((test) => [identityKeyOf(test.classname, test.name), test.id]));
+}
+
+/**
+ * A user-safe description of a processing failure (D-06): never the raw exception text,
+ * which can include server file paths and ORM internals.
+ */
+export function processingFailureMessage(error: unknown): string {
+  if (
+    error instanceof Prisma.PrismaClientKnownRequestError ||
+    error instanceof Prisma.PrismaClientValidationError
+  ) {
+    return 'Could not store the test cases from this Report. Check that every <testcase> has classname and name attributes.';
+  }
+  return 'Could not read the test cases from this Report.';
 }

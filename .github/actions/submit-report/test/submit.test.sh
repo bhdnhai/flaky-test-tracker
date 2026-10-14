@@ -29,7 +29,8 @@ done
 port="$(cat "${port_file}")"
 
 export GITHUB_SHA="0123456789abcdef0123456789abcdef01234567"
-export GITHUB_REF_NAME="feature/flaky-fix"
+# Non-ASCII on purpose: the encoding must be UTF-8-safe (D-08).
+export GITHUB_REF_NAME="feature/flaky-fix-ümlaut-тест"
 export GITHUB_RUN_ID="4242424242"
 export GITHUB_RUN_ATTEMPT="2"
 export GITHUB_JOB="unit"

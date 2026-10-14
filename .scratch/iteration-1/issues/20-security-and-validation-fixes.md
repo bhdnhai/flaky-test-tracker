@@ -1,6 +1,6 @@
 # 20 — Security and validation fixes
 
-Status: ready-for-agent
+Status: resolved
 Priority: must
 Blocked by: 17
 
@@ -62,3 +62,7 @@ FR-08, FR-24, NFR-06, SRS §9.1 (no internals in error text), FR-33. Defects D-0
 
 ## Comments
 
+- Built: `runAttempt` ≤ 2³¹−1 (D-04); literal search with `ESCAPE` (D-03); user-safe stored processing errors, full error in the log only (D-06); `::add-mask::` for the dogfood token (D-05); byte-wise, UTF-8-safe `urlencode` in the composite action (D-08).
+- Tests: contracts `AC-07 / D-04`; integration `AC-24 / D-03`; the AC-13 test now asserts no paths or ORM text in the stored error (D-06); the AC-30 shell test uses a non-ASCII branch (D-08).
+- D-05 is reviewed but not yet run on GitHub (no remote).
+- Deviation: committed together with ticket 19.

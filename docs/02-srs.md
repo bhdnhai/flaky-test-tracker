@@ -513,7 +513,7 @@ The test file column is filled in during implementation. Status and evidence per
 | FR-27 | M | AC-26 | `apps/api/test/read-api.int.test.ts`, `apps/web/e2e/reports.spec.ts`, `apps/web/e2e/core-workflow.spec.ts` |
 | FR-28 | M | AC-23 | `apps/web/e2e/test-search-and-detail.spec.ts`, `apps/web/e2e/core-workflow.spec.ts` |
 | FR-29 | M | AC-25 | `apps/web/e2e/test-search-and-detail.spec.ts`, `apps/web/e2e/core-workflow.spec.ts` |
-| FR-30 | M | AC-26 | `apps/api/test/read-api.int.test.ts`, `apps/web/e2e/reports.spec.ts`, `apps/web/e2e/core-workflow.spec.ts` |
+| FR-30 | M | AC-26 | `apps/api/test/read-api.int.test.ts`, `apps/web/e2e/reports.spec.ts`, `apps/web/e2e/core-workflow.spec.ts`, `apps/api/test/report-processing.int.test.ts` (D-02) |
 | FR-31 | M | AC-28, AC-29 | `fixtures/flaky-suite/tests/` (AC-29: code-review checklist item, ticket 06 and validation §2.3), `apps/web/e2e/reviewer-demo.spec.ts` |
 | FR-32 | M | AC-28 | `scripts/demo.sh`, `apps/web/e2e/reviewer-demo.spec.ts` |
 | FR-33 | M | AC-30 | `.github/actions/submit-report/test/submit.test.sh` |

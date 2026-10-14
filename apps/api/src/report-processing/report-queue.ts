@@ -88,6 +88,8 @@ export class ReportQueueService {
       data: {
         processingState: 'processed',
         processedAt: now,
+        // A Report that failed an earlier attempt must not keep showing that error (D-02).
+        error: null,
         ...(collisionWarning !== undefined ? { collisionWarning } : {}),
       },
     });

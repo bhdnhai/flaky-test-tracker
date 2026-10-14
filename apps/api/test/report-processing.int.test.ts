@@ -144,6 +144,30 @@ describe('ReportProcessingService (via the Nest application context)', () => {
     expect(outcomes).toHaveLength(0);
   });
 
+  it('FR-30 / D-02: a Report that failed an earlier attempt and then succeeds no longer carries the old error', async () => {
+    const { projects, reportIntake, processing, prisma } = await createContext();
+    const { project } = await projects.create('web-app');
+    const { report: submitted } = await reportIntake.submit({
+      project,
+      commitSha: SOME_COMMIT,
+      metadata: {},
+      body: Buffer.from(
+        '<testsuites><testsuite name="s"><testcase classname="c" name="t" /></testsuite></testsuites>',
+      ),
+    });
+    // Setup: the state an earlier failed attempt leaves behind (pending, 1 attempt, an error).
+    await prisma.report.update({
+      where: { id: submitted.id },
+      data: { error: 'Could not read the test cases from this Report.', processingAttempts: 1 },
+    });
+
+    await processing.processNext(new Date());
+
+    const report = await prisma.report.findUniqueOrThrow({ where: { id: submitted.id } });
+    expect(report.processingState).toBe('processed');
+    expect(report.error).toBeNull();
+  });
+
   it('AC-15: the same Playwright suite reported with includeProjectInTestName: true produces two distinct Tests and no Collision warning', async () => {
     const twoProjectReportFixed = `
 <testsuites>
@@ -192,7 +216,7 @@ describe('ReportProcessingService — reliability (ticket 09)', () => {
   </testsuite>
 </testsuites>`;
 
-  it('AC-13: a well-formed Report with a test case the parser can\'t read still gets 202, then fails after 3 attempts with an error', async () => {
+  it("AC-13: a well-formed Report with a test case the parser can't read still gets 202, then fails after 3 attempts with an error", async () => {
     const context = await createHttpTestContext();
     app = context.app;
     const { server, projects, prisma } = context;
@@ -235,6 +259,8 @@ describe('ReportProcessingService — reliability (ticket 09)', () => {
     expect(report.processingAttempts).toBe(3);
     expect(report.nextAttemptAt).toBeNull();
     expect(report.error).toBeTruthy();
+    // D-06: the stored error is user-safe — no server paths, no ORM internals.
+    expect(report.error).not.toMatch(/\/(?:app|Users|home|src|node_modules)\b|prisma|invocation/i);
   });
 
   async function createContext(): Promise<{
@@ -289,7 +315,7 @@ describe('ReportProcessingService — reliability (ticket 09)', () => {
     expect(outcomesAfterSecond).toHaveLength(4);
   });
 
-  it('AC-17: a killed worker\'s claim expires after 60s and the Report is then processed exactly once', async () => {
+  it("AC-17: a killed worker's claim expires after 60s and the Report is then processed exactly once", async () => {
     const { projects, reportIntake, processing, prisma } = await createContext();
     const { project } = await projects.create('web-app');
     const { report: submitted } = await reportIntake.submit({

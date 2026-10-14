@@ -10,9 +10,9 @@
 
 **Bottom line.** The core value loop works end to end on genuinely flaky tests: Report submitted → Flakes detected → ranked list and a verdict in 2 clicks. Every Must FR is implemented and every AC has a test or a recorded measurement. Nothing is ❌. 12 items are ⚠️, for three reasons:
 
-1. Four dashboard and logging details are incomplete: FR-29 per-Commit counts, FR-30 Collision text, NFR-10 state-change logging, FR-24 wildcard escaping.
+1. Four dashboard and logging details are incomplete: FR-29 per-Commit counts, FR-30 Collision text, NFR-10 state-change logging, FR-24 wildcard escaping. *(After validation: all but NFR-10 fixed in tickets 19–20.)*
 2. Some checks need a real GitHub run, and this repository has no remote: AC-31 and AC-39 in CI.
-3. Some edge cases fail: `runAttempt` overflow, the NFR-04 timing wording (resolved in SRS v1.7), a token in the dogfood job's log.
+3. Some edge cases fail: `runAttempt` overflow, the NFR-04 timing wording (resolved in SRS v1.7), a token in the dogfood job's log. *(After validation: all fixed in ticket 20 and SRS v1.7.)*
 
 ---
 
@@ -48,7 +48,7 @@ Test paths are relative to the repository root. "int" = integration against real
 | FR-05 | M | ✅ | `apps/api/test/report-intake.int.test.ts` (AC-04) | |
 | FR-06 | M | ✅ | `apps/api/test/report-intake.int.test.ts` (AC-03, AC-05) | |
 | FR-07 | M | ✅ | `packages/contracts/src/reports.test.ts`, `apps/api/test/report-intake.int.test.ts` (AC-06) | |
-| FR-08 | M | ⚠️ | `packages/contracts/src/reports.test.ts`, `apps/api/test/report-intake.int.test.ts`, `apps/api/test/read-api.int.test.ts` (AC-07) | `runAttempt` has no upper bound. A value above 2³¹−1 passes Zod, overflows the `int` column and returns `500` instead of `400 VALIDATION_ERROR` (D-04). |
+| FR-08 | M | ✅ | `packages/contracts/src/reports.test.ts`, `apps/api/test/report-intake.int.test.ts`, `apps/api/test/read-api.int.test.ts` (AC-07) | `runAttempt` has no upper bound. A value above 2³¹−1 passes Zod, overflows the `int` column and returns `500` instead of `400 VALIDATION_ERROR` (D-04). **Fixed after validation (ticket 20, D-04): bounded at 2³¹−1 → `400 VALIDATION_ERROR`.** |
 | FR-09 | M | ✅ | `apps/api/test/report-intake.int.test.ts` (AC-08) | |
 | FR-10 | M | ✅ | `apps/api/src/report-intake/xml-pre-check.test.ts`, `apps/api/test/report-intake.int.test.ts` (AC-09) | |
 | FR-11 | M | ✅ | `apps/api/test/report-intake.int.test.ts` (AC-04, byte-identical) | |
@@ -64,13 +64,13 @@ Test paths are relative to the repository root. "int" = integration against real
 | FR-21 | M | ✅ | `apps/api/test/flake-analysis.int.test.ts` (AC-19, AC-20, AC-21) | |
 | FR-22 | M | ✅ | `apps/api/test/flake-analysis.int.test.ts` (AC-22) | |
 | FR-23 | M | ✅ | `apps/api/test/flake-analysis.int.test.ts` (AC-22) | |
-| FR-24 | M | ⚠️ | `packages/contracts/src/tests.test.ts`, `apps/api/test/flake-analysis.int.test.ts`, `apps/api/test/read-api.int.test.ts` (AC-23, AC-24) | `%` and `_` in the query aren't escaped before `ILIKE`, so they act as wildcards rather than literal "contains" text (D-03). |
+| FR-24 | M | ✅ | `packages/contracts/src/tests.test.ts`, `apps/api/test/flake-analysis.int.test.ts`, `apps/api/test/read-api.int.test.ts` (AC-23, AC-24) | `%` and `_` in the query aren't escaped before `ILIKE`, so they act as wildcards rather than literal "contains" text (D-03). **Fixed after validation (ticket 20, D-03): `\`, `%`, `_` escaped, `ILIKE … ESCAPE`.** |
 | FR-25 | M | ✅ | `apps/api/test/flake-analysis.int.test.ts`, `apps/api/test/read-api.int.test.ts` (AC-25) | |
 | FR-26 | M | ✅ | `apps/api/test/read-api.int.test.ts`, `apps/web/e2e/core-workflow.spec.ts` (AC-26) | |
 | FR-27 | M | ✅ | `apps/api/test/read-api.int.test.ts`, `apps/web/e2e/reports.spec.ts`, `apps/web/e2e/core-workflow.spec.ts` (AC-26) | |
 | FR-28 | M | ✅ | `apps/web/e2e/test-search-and-detail.spec.ts`, `apps/web/e2e/core-workflow.spec.ts` (AC-23) | |
-| FR-29 | M | ⚠️ | `apps/web/e2e/test-search-and-detail.spec.ts`, `apps/web/e2e/core-workflow.spec.ts` (AC-25) | The page doesn't render the per-Commit passed/failed/skipped **counts** that FR-25 lists. The API returns them (D-01). |
-| FR-30 | M | ⚠️ | `apps/api/test/read-api.int.test.ts`, `apps/web/e2e/reports.spec.ts`, `apps/web/e2e/core-workflow.spec.ts` (AC-26) | The Collision warning column shows only "Yes", not the identities and the fix (FR-17, UC-3). A Report that fails one attempt and then succeeds keeps showing the old `error` (D-02). |
+| FR-29 | M | ✅ | `apps/web/e2e/test-search-and-detail.spec.ts`, `apps/web/e2e/core-workflow.spec.ts` (AC-25) | The page doesn't render the per-Commit passed/failed/skipped **counts** that FR-25 lists. The API returns them (D-01). **Fixed after validation (ticket 19, D-01): each Commit shows "N passed, N failed, N skipped".** |
+| FR-30 | M | ✅ | `apps/api/test/read-api.int.test.ts`, `apps/web/e2e/reports.spec.ts`, `apps/web/e2e/core-workflow.spec.ts` (AC-26), `apps/api/test/report-processing.int.test.ts` (D-02) | The Collision warning column shows only "Yes", not the identities and the fix (FR-17, UC-3). A Report that fails one attempt and then succeeds keeps showing the old `error` (D-02). **Fixed after validation (ticket 19, D-02): identities and fix text shown; `complete()` clears the old error.** |
 | FR-31 | M | ✅ | `fixtures/flaky-suite/tests/` (AC-29 code-review check, ticket 06 Comments), `apps/web/e2e/reviewer-demo.spec.ts` (AC-28) | |
 | FR-32 | M | ✅ | `scripts/demo.sh`, `apps/web/e2e/reviewer-demo.spec.ts` (AC-28) | Measured: 28 s (§1). |
 | FR-33 | M | ✅ | `README.md` "Connect your CI", `.github/actions/submit-report/`, `.github/actions/submit-report/test/submit.test.sh` (AC-30) | `urlencode` encodes non-ASCII characters by code point, not as UTF-8 bytes, so a non-ASCII branch name arrives garbled (D-08). |
@@ -86,7 +86,7 @@ Test paths are relative to the repository root. "int" = integration against real
 | NFR-03 | ✅ | `load/seed-reads.mjs` via `npm run perf:reads` (AC-36) | p95 ≈ **116 / 22 / 7 ms** (Flaky Tests / search / detail) against < 500 ms. |
 | NFR-04 | ✅ | `apps/api/test/report-processing.int.test.ts` (AC-16, AC-17, with a test clock) | Implemented as SRS §8 says ("claim older than 60 s"), with the sweep every 10 s, so the worst case is about 70 s. The SRS contradicted itself (§4.1); resolved after validation in SRS v1.7 by relaxing NFR-04 to "within 70 s". |
 | NFR-05 | ✅ | `apps/api/test/report-processing.int.test.ts` (AC-13, AC-18) | |
-| NFR-06 | ⚠️ | `apps/api/src/projects/token.test.ts`, `apps/api/test/report-intake.int.test.ts`, `apps/api/test/observability.int.test.ts` (AC-05) | The product meets it. The `dogfood` CI job passes its runtime token through an unmasked step output into `with: token:`, so GitHub would print it in the job log (D-05). That token belongs to a throwaway in-job deployment. |
+| NFR-06 | ✅ | `apps/api/src/projects/token.test.ts`, `apps/api/test/report-intake.int.test.ts`, `apps/api/test/observability.int.test.ts` (AC-05) | The product meets it. The `dogfood` CI job passes its runtime token through an unmasked step output into `with: token:`, so GitHub would print it in the job log (D-05). That token belongs to a throwaway in-job deployment. **Fixed after validation (ticket 20, D-05): `::add-mask::` before the token becomes a step output; unverified on GitHub until the push.** |
 | NFR-07 | ✅ | `apps/api/src/report-intake/xml-pre-check.test.ts`, `apps/api/test/report-intake.int.test.ts` (AC-09) | Predefined entities still decode (SRS v1.4). |
 | NFR-08 | ✅ | `eslint.config.js` (bans `dangerouslySetInnerHTML`), `apps/web/e2e/xss-safety.spec.ts` (AC-27) | |
 | NFR-09 | ✅ | `apps/web/e2e/accessibility.spec.ts` (AC-37) | |
@@ -177,7 +177,9 @@ Deviations that needed no document change: Nest's global body parser turned off 
 
 ## 5. What remains
 
-- **Partly met (§2):** FR-08, FR-24, FR-29, FR-30, FR-34, NFR-06 (CI only), NFR-10, NFR-12/AC-39 (CI run), AC-26 (flaky test), AC-31.
+- **Partly met at validation (§2):** FR-08, FR-24, FR-29, FR-30, FR-34, NFR-06 (CI only), NFR-10, NFR-12/AC-39 (CI run), AC-26 (flaky test), AC-31.
+- **Fixed after validation:** AC-26 (ticket 18, D-09); FR-29, FR-30 (ticket 19, D-01, D-02); FR-08, FR-24, NFR-06 (ticket 20, D-03 … D-06, D-08); NFR-04 wording (SRS v1.7).
+- **Still partly met:** NFR-10 (D-07, ticket 21 not done), FR-34 / AC-31 and AC-39 (need a GitHub run).
 - **Evidence only a real GitHub remote can give:** AC-31 and A4 (push, then "Re-run failed jobs"), AC-39 in CI, and A8 on GitHub runners.
 - **Assumptions that need real teams:** A1, A3, A6, A7, A9.
 
@@ -197,14 +199,14 @@ From the ticket 17 code review (Spec and Standards axes run as separate sub-agen
 
 | ID | Debt | Where | Axis |
 |---|---|---|---|
-| D-01 | Test detail doesn't render per-Commit passed/failed/skipped counts (FR-25/FR-29) | `apps/web/src/features/test-detail/TestDetailPage.tsx` | Spec |
-| D-02 | Reports page: the Collision warning shows only "Yes". `complete()` never clears an earlier attempt's `error`. | `apps/web/src/features/reports/ReportsPage.tsx`, `apps/api/src/report-processing/report-queue.ts` | Spec |
-| D-03 | Search doesn't escape `%`/`_` before `ILIKE` | `apps/api/src/flake-analysis/flake-analysis.service.ts` | Spec |
-| D-04 | `runAttempt` is unbounded, so an overflow gives `500` | `packages/contracts/src/reports.ts` | Spec |
-| D-05 | The dogfood token isn't masked (`::add-mask::`) before it becomes a step output | `scripts/dogfood.sh`, `.github/workflows/ci.yml` | Spec (NFR-06) |
-| D-06 | A failed Report stores raw exception text, including server file paths from Prisma | `apps/api/src/report-processing/report-processing.service.ts` | Spec (§9.1 spirit) |
+| D-01 | ~~Test detail doesn't render per-Commit passed/failed/skipped counts (FR-25/FR-29)~~ **Fixed by ticket 19** | `apps/web/src/features/test-detail/TestDetailPage.tsx` | Spec |
+| D-02 | ~~Reports page: the Collision warning shows only "Yes". `complete()` never clears an earlier attempt's `error`.~~ **Fixed by ticket 19** | `apps/web/src/features/reports/ReportsPage.tsx`, `apps/api/src/report-processing/report-queue.ts` | Spec |
+| D-03 | ~~Search doesn't escape `%`/`_` before `ILIKE`~~ **Fixed by ticket 20** | `apps/api/src/flake-analysis/flake-analysis.service.ts` | Spec |
+| D-04 | ~~`runAttempt` is unbounded, so an overflow gives `500`~~ **Fixed by ticket 20** | `packages/contracts/src/reports.ts` | Spec |
+| D-05 | ~~The dogfood token isn't masked (`::add-mask::`) before it becomes a step output~~ **Fixed by ticket 20** | `scripts/dogfood.sh`, `.github/workflows/ci.yml` | Spec (NFR-06) |
+| D-06 | ~~A failed Report stores raw exception text, including server file paths from Prisma~~ **Fixed by ticket 20** | `apps/api/src/report-processing/report-processing.service.ts` | Spec (§9.1 spirit) |
 | D-07 | NFR-10 state-change lines are incomplete or mislabelled | `report-processing.service.ts`, `report-queue.ts`, `cli.ts` | Spec |
-| D-08 | `urlencode` in the composite action isn't UTF-8-safe | `.github/actions/submit-report/submit.sh` | Spec |
+| D-08 | ~~`urlencode` in the composite action isn't UTF-8-safe~~ **Fixed by ticket 20** | `.github/actions/submit-report/submit.sh` | Spec |
 | D-09 | ~~The AC-26 E2E test races the worker (seen in tickets 04, 06 and 11, and again here)~~ **Fixed by ticket 18**: asserts the terminal `processed` state via `toPass` instead of transient `pending`. | `apps/web/e2e/reports.spec.ts` | Test |
 | D-10 | The worker loop doesn't catch errors from the database during claim/`fail`, so the process exits (Compose restarts it) | `apps/api/src/worker.ts` | Spec (minor) |
 | D-11 | The ReportQueue seam leaks `Prisma.TransactionClient` and an extra `attempts` parameter beyond design §4's interface, and lives inside `report-processing/` rather than as its own module | `report-queue.ts`, `cli.ts` | Standards |

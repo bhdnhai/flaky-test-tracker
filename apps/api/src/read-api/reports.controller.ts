@@ -1,5 +1,6 @@
 import { Controller, Get, Param } from '@nestjs/common';
 import {
+  reportListItemSchema,
   processingStateSchema,
   type ReportListItem,
   type ReportsListResponse,
@@ -60,7 +61,8 @@ function toReportListItem(report: Report): ReportListItem {
     sizeBytes: report.sizeBytes,
     processingState: processingStateSchema.parse(report.processingState),
     error: report.error,
-    collisionWarning: report.collisionWarning,
+    // Stored as JSON by the worker; validated against the contract on the way out (FR-30).
+    collisionWarning: reportListItemSchema.shape.collisionWarning.parse(report.collisionWarning),
     receivedAt: report.receivedAt.toISOString(),
     processedAt: report.processedAt?.toISOString() ?? null,
   };

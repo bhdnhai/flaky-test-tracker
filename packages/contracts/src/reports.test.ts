@@ -30,6 +30,11 @@ describe('submitReportMetadataSchema', () => {
     expect(submitReportMetadataSchema.safeParse({ runAttempt: 'x' }).success).toBe(false);
   });
 
+  it('AC-07 / D-04: rejects a runAttempt above the int column range instead of overflowing it', () => {
+    expect(submitReportMetadataSchema.safeParse({ runAttempt: '2147483648' }).success).toBe(false);
+    expect(submitReportMetadataSchema.safeParse({ runAttempt: '2147483647' }).success).toBe(true);
+  });
+
   it('AC-07: accepts branch, runId, runAttempt and job together', () => {
     const result = submitReportMetadataSchema.safeParse({
       branch: 'main',

@@ -1,6 +1,6 @@
 # 19 — Dashboard gaps: per-Commit counts on Test detail; Collision text and stale errors on the Reports page
 
-Status: ready-for-agent
+Status: resolved
 Priority: must
 Blocked by: 17
 
@@ -58,3 +58,6 @@ FR-29 (with FR-25's per-Commit counts), FR-30 (with FR-17's warning text and UC-
 
 ## Comments
 
+- Built: per-Commit "N passed, N failed, N skipped" on Test detail (D-01); the Reports page lists Collision identities and the fix text (D-02); `complete()` clears a stale `error` (D-02). `collisionWarning` is now typed in the contracts and validated on the way out.
+- Tests: integration `FR-30 / D-02` in `report-processing.int.test.ts`; E2E assertions in `test-search-and-detail.spec.ts` and a new `FR-30 / D-02` Collision test in `reports.spec.ts`. 13/13 E2E, 70/70 integration.
+- Deviation: committed together with ticket 20 (both touch `packages/contracts/src/reports.ts`).
